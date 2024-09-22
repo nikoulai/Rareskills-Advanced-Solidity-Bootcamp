@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+
 import {console} from "forge-std/console.sol";
 
 contract SCEcosystem1 is ERC721, ERC721Royalty, Ownable2Step {
@@ -59,9 +60,8 @@ contract SCEcosystem1 is ERC721, ERC721Royalty, Ownable2Step {
 
     function _verifyProof(bytes32[] memory proof, uint256 index, address addr) private view {
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(addr, index))));
-        // console.log(5);
-        // console.log(bytes.concat(leaf));
-        // console.log(merkleRoot);
+        console.logBytes32(leaf);
+        console.logBytes32(proof[0]);
         require(MerkleProof.verify(proof, merkleRoot, leaf), "Invalid proof");
     }
 

@@ -3,7 +3,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "../src/Ecosystem1/SCEcosystem1.sol";
+import "../../src/Ecosystem1/SCEcosystem1.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 import "forge-std/console.sol";
@@ -15,6 +15,7 @@ contract SCEcosystem1Test is Test {
     address public addr2;
     bytes32 public root;
     bytes32[] public proof;
+    bytes32[] leaves = new bytes32[](2);
 
     function setUp() public {
         owner = address(this);
@@ -22,14 +23,13 @@ contract SCEcosystem1Test is Test {
         addr2 = address(0x2);
 
         // Create a Merkle Tree for testing
-        bytes32[] memory leaves = new bytes32[](2);
         // leaves[0] = keccak256(abi.encodePacked(addr1, uint256(0)));
         // leaves[1] = keccak256(abi.encodePacked(addr2, uint256(1)));
         leaves[0] = keccak256(bytes.concat(keccak256(abi.encode(addr1, uint256(0)))));
-        // leaves[1] = keccak256(bytes.concat(keccak256(abi.encode(addr2, uint256(1)))));
-        // root = keccak256(bytes.concat(leaves[0], leaves[1]));
-        console.log(555);
-        scecosystem1 = new SCEcosystem1(leaves[0]);
+        leaves[1] = keccak256(bytes.concat(keccak256(abi.encode(addr2, uint256(1)))));
+        root = keccak256(bytes.concat(leaves[0], leaves[1]));
+        console.logBytes32(leaves[0]);
+        scecosystem1 = new SCEcosystem1(root);
     }
 
     function testMint() public {
@@ -43,8 +43,7 @@ contract SCEcosystem1Test is Test {
     function testMintWithDiscount() public {
         vm.deal(addr1, 1 ether);
         proof = new bytes32[](1);
-        // proof[0] = keccak256(bytes.concat(keccak256(abi.encode(addr1, uint256(0)))));
-
+        proof[0] = leaves[1];
         vm.prank(addr1);
         scecosystem1.mintWithDiscount{value: 0.05 ether}(proof, 0);
         assertEq(scecosystem1.totalSupply(), 1);

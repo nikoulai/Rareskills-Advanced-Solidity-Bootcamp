@@ -33,7 +33,7 @@ contract Staking is IERC721Receiver {
         return this.onERC721Received.selector;
     }
 
-    function stake(uint256 tokenId, address from) internal{
+    function stake(uint256 tokenId, address from) internal {
         // transfer token to this contract
         // IERC721(msg.sender).safeTransferFrom(msg.sender, address(this), tokenId);
 
