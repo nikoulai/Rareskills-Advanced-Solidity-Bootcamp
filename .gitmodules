@@ -22,3 +22,6 @@
 [submodule "week3-6/lib/solady"]
 	path = week3-6/lib/solady
 	url = https://github.com/vectorized/solady
+[submodule "week3-6/lib/openzeppelin-foundry-upgrades"]
+	path = week3-6/lib/openzeppelin-foundry-upgrades
+	url = https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades
