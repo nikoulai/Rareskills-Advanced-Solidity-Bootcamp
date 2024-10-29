@@ -4,6 +4,8 @@ pragma solidity ^0.8.13;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
+//could just inherit these
+// contract PrimeNFT is ERC721Enumerable, Ownable {
 contract PrimeNFT is ERC721, ERC721Enumerable, Ownable {
     constructor(address initialOwner) ERC721("MyToken", "MTK") Ownable(initialOwner) {}
 

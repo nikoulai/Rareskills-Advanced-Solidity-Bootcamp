@@ -29,10 +29,13 @@ contract Staking is IERC721Receiver {
         override
         returns (bytes4)
     {
+        //check which nft is calling
+        //add event
         stake(tokenId, from);
         return this.onERC721Received.selector;
     }
 
+    //make it _stake because it is internal
     function stake(uint256 tokenId, address from) internal {
         // transfer token to this contract
         // IERC721(msg.sender).safeTransferFrom(msg.sender, address(this), tokenId);
@@ -40,6 +43,7 @@ contract Staking is IERC721Receiver {
         // mint reward token
         // IRewardToken(rewardToken).mint(msg.sender, 1 ether);
 
+        //stakeTokens is not used here
         UserInfo memory info = UserInfo({owner: from, lastReward: block.timestamp});
 
         tokenToUserInfo[tokenId] = info;
@@ -50,6 +54,7 @@ contract Staking is IERC721Receiver {
         UserInfo memory userInfo = tokenToUserInfo[tokenId];
         require(userInfo.owner == msg.sender, "Only owner can withdraw rewards");
 
+        // make these lines into a function
         //withraw reward token
         uint256 timePassed = block.timestamp - userInfo.lastReward;
 

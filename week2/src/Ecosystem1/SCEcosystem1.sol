@@ -38,6 +38,7 @@ contract SCEcosystem1 is ERC721, ERC721Royalty, Ownable2Step {
 
         totalSupply++;
 
+        // log the total supply before ++ operation for mload instead of sload
         _safeMint(_msgSender(), totalSupply - 1);
     }
 
