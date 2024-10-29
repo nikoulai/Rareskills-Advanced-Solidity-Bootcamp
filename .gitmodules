@@ -19,3 +19,6 @@
 [submodule "week3-6/lib/forge-std"]
 	path = week3-6/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "week3-6/lib/solady"]
+	path = week3-6/lib/solady
+	url = https://github.com/vectorized/solady
