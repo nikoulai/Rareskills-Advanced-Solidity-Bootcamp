@@ -43,7 +43,7 @@ contract Staking is IERC721Receiver {
         // mint reward token
         // IRewardToken(rewardToken).mint(msg.sender, 1 ether);
 
-        //stakeTokens is not used here
+        stakedTokens[tokenId] = true;
         UserInfo memory info = UserInfo({owner: from, lastReward: block.timestamp});
 
         tokenToUserInfo[tokenId] = info;
@@ -81,6 +81,6 @@ contract Staking is IERC721Receiver {
         // tokenToUserInfo[tokenId] = UserInfo(address(0), 0);
         delete tokenToUserInfo[tokenId];
         // transfer token to owner
-        IERC721(msg.sender).safeTransferFrom(address(this), msg.sender, tokenId);
+        IERC721(nft).safeTransferFrom(address(this), msg.sender, tokenId);
     }
 }

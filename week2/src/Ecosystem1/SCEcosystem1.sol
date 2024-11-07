@@ -73,7 +73,6 @@ contract SCEcosystem1 is ERC721, ERC721Royalty, Ownable2Step {
     function withdraw() external onlyOwner {
         (bool success,) = payable(owner()).call{value: (address(this).balance)}("");
 
-        //maybe assert?
         require(success, "Transfer failed");
     }
 }
