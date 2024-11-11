@@ -1,0 +1,16 @@
+#directory to save the corpus; by default is disabled
+corpusDir: src/Dex/corpus-output
+# filterFunctions:
+#   ["EchidnaContract.swap12(uint256)", "EchidnaContract.swap21(uint256)"]
+testLimit: 1000
+#deployer is address of the contract deployer (who often is privileged owner, etc.)
+# deployer: "0x30000"
+#sender is set of addresses transactions may originate from
+#we need only one address
+sender: ["0x10000"]
+cryticArgs:
+  [
+    "--solc-remaps",
+    "@openzeppelin/contracts/=../../lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/",
+  ]
+# testMode: assertion

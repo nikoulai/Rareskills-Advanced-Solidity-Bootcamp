@@ -1,0 +1,853 @@
+/Users/nikos/Desktop/rareskills-advanced-solidity/week7-8 Testing/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/access/Ownable.sol
+   1 |     | // SPDX-License-Identifier: MIT
+   2 |     | // OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)
+   3 |     | 
+   4 |     | pragma solidity ^0.8.20;
+   5 |     | 
+   6 |     | import {Context} from "../utils/Context.sol";
+   7 |     | 
+   8 |     | /**
+   9 |     |  * @dev Contract module which provides a basic access control mechanism, where
+  10 |     |  * there is an account (an owner) that can be granted exclusive access to
+  11 |     |  * specific functions.
+  12 |     |  *
+  13 |     |  * The initial owner is set to the address provided by the deployer. This can
+  14 |     |  * later be changed with {transferOwnership}.
+  15 |     |  *
+  16 |     |  * This module is used through inheritance. It will make available the modifier
+  17 |     |  * `onlyOwner`, which can be applied to your functions to restrict their use to
+  18 |     |  * the owner.
+  19 |     |  */
+  20 |     | abstract contract Ownable is Context {
+  21 |     |     address private _owner;
+  22 |     | 
+  23 |     |     /**
+  24 |     |      * @dev The caller account is not authorized to perform an operation.
+  25 |     |      */
+  26 |     |     error OwnableUnauthorizedAccount(address account);
+  27 |     | 
+  28 |     |     /**
+  29 |     |      * @dev The owner is not a valid owner account. (eg. `address(0)`)
+  30 |     |      */
+  31 |     |     error OwnableInvalidOwner(address owner);
+  32 |     | 
+  33 |     |     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+  34 |     | 
+  35 |     |     /**
+  36 |     |      * @dev Initializes the contract setting the address provided by the deployer as the initial owner.
+  37 |     |      */
+  38 | *   |     constructor(address initialOwner) {
+  39 | *   |         if (initialOwner == address(0)) {
+  40 |     |             revert OwnableInvalidOwner(address(0));
+  41 |     |         }
+  42 | *   |         _transferOwnership(initialOwner);
+  43 |     |     }
+  44 |     | 
+  45 |     |     /**
+  46 |     |      * @dev Throws if called by any account other than the owner.
+  47 |     |      */
+  48 |     |     modifier onlyOwner() {
+  49 | *   |         _checkOwner();
+  50 |     |         _;
+  51 |     |     }
+  52 |     | 
+  53 |     |     /**
+  54 |     |      * @dev Returns the address of the current owner.
+  55 |     |      */
+  56 | *   |     function owner() public view virtual returns (address) {
+  57 | *   |         return _owner;
+  58 |     |     }
+  59 |     | 
+  60 |     |     /**
+  61 |     |      * @dev Throws if the sender is not the owner.
+  62 |     |      */
+  63 | *   |     function _checkOwner() internal view virtual {
+  64 | *   |         if (owner() != _msgSender()) {
+  65 |     |             revert OwnableUnauthorizedAccount(_msgSender());
+  66 |     |         }
+  67 |     |     }
+  68 |     | 
+  69 |     |     /**
+  70 |     |      * @dev Leaves the contract without owner. It will not be possible to call
+  71 |     |      * `onlyOwner` functions. Can only be called by the current owner.
+  72 |     |      *
+  73 |     |      * NOTE: Renouncing ownership will leave the contract without an owner,
+  74 |     |      * thereby disabling any functionality that is only available to the owner.
+  75 |     |      */
+  76 |     |     function renounceOwnership() public virtual onlyOwner {
+  77 |     |         _transferOwnership(address(0));
+  78 |     |     }
+  79 |     | 
+  80 |     |     /**
+  81 |     |      * @dev Transfers ownership of the contract to a new account (`newOwner`).
+  82 |     |      * Can only be called by the current owner.
+  83 |     |      */
+  84 | *   |     function transferOwnership(address newOwner) public virtual onlyOwner {
+  85 | *   |         if (newOwner == address(0)) {
+  86 |     |             revert OwnableInvalidOwner(address(0));
+  87 |     |         }
+  88 | *   |         _transferOwnership(newOwner);
+  89 |     |     }
+  90 |     | 
+  91 |     |     /**
+  92 |     |      * @dev Transfers ownership of the contract to a new account (`newOwner`).
+  93 |     |      * Internal function without access restriction.
+  94 |     |      */
+  95 | *   |     function _transferOwnership(address newOwner) internal virtual {
+  96 | *   |         address oldOwner = _owner;
+  97 | *   |         _owner = newOwner;
+  98 | *   |         emit OwnershipTransferred(oldOwner, newOwner);
+  99 |     |     }
+ 100 |     | }
+ 101 |     | 
+
+/Users/nikos/Desktop/rareskills-advanced-solidity/week7-8 Testing/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol
+   1 |     | // SPDX-License-Identifier: MIT
+   2 |     | // OpenZeppelin Contracts (last updated v5.1.0) (interfaces/draft-IERC6093.sol)
+   3 |     | pragma solidity ^0.8.20;
+   4 |     | 
+   5 |     | /**
+   6 |     |  * @dev Standard ERC-20 Errors
+   7 |     |  * Interface of the https://eips.ethereum.org/EIPS/eip-6093[ERC-6093] custom errors for ERC-20 tokens.
+   8 |     |  */
+   9 |     | interface IERC20Errors {
+  10 |     |     /**
+  11 |     |      * @dev Indicates an error related to the current `balance` of a `sender`. Used in transfers.
+  12 |     |      * @param sender Address whose tokens are being transferred.
+  13 |     |      * @param balance Current balance for the interacting account.
+  14 |     |      * @param needed Minimum amount required to perform a transfer.
+  15 |     |      */
+  16 |     |     error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
+  17 |     | 
+  18 |     |     /**
+  19 |     |      * @dev Indicates a failure with the token `sender`. Used in transfers.
+  20 |     |      * @param sender Address whose tokens are being transferred.
+  21 |     |      */
+  22 |     |     error ERC20InvalidSender(address sender);
+  23 |     | 
+  24 |     |     /**
+  25 |     |      * @dev Indicates a failure with the token `receiver`. Used in transfers.
+  26 |     |      * @param receiver Address to which tokens are being transferred.
+  27 |     |      */
+  28 |     |     error ERC20InvalidReceiver(address receiver);
+  29 |     | 
+  30 |     |     /**
+  31 |     |      * @dev Indicates a failure with the `spender`’s `allowance`. Used in transfers.
+  32 |     |      * @param spender Address that may be allowed to operate on tokens without being their owner.
+  33 |     |      * @param allowance Amount of tokens a `spender` is allowed to operate with.
+  34 |     |      * @param needed Minimum amount required to perform a transfer.
+  35 |     |      */
+  36 |     |     error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed);
+  37 |     | 
+  38 |     |     /**
+  39 |     |      * @dev Indicates a failure with the `approver` of a token to be approved. Used in approvals.
+  40 |     |      * @param approver Address initiating an approval operation.
+  41 |     |      */
+  42 |     |     error ERC20InvalidApprover(address approver);
+  43 |     | 
+  44 |     |     /**
+  45 |     |      * @dev Indicates a failure with the `spender` to be approved. Used in approvals.
+  46 |     |      * @param spender Address that may be allowed to operate on tokens without being their owner.
+  47 |     |      */
+  48 |     |     error ERC20InvalidSpender(address spender);
+  49 |     | }
+  50 |     | 
+  51 |     | /**
+  52 |     |  * @dev Standard ERC-721 Errors
+  53 |     |  * Interface of the https://eips.ethereum.org/EIPS/eip-6093[ERC-6093] custom errors for ERC-721 tokens.
+  54 |     |  */
+  55 |     | interface IERC721Errors {
+  56 |     |     /**
+  57 |     |      * @dev Indicates that an address can't be an owner. For example, `address(0)` is a forbidden owner in ERC-20.
+  58 |     |      * Used in balance queries.
+  59 |     |      * @param owner Address of the current owner of a token.
+  60 |     |      */
+  61 |     |     error ERC721InvalidOwner(address owner);
+  62 |     | 
+  63 |     |     /**
+  64 |     |      * @dev Indicates a `tokenId` whose `owner` is the zero address.
+  65 |     |      * @param tokenId Identifier number of a token.
+  66 |     |      */
+  67 |     |     error ERC721NonexistentToken(uint256 tokenId);
+  68 |     | 
+  69 |     |     /**
+  70 |     |      * @dev Indicates an error related to the ownership over a particular token. Used in transfers.
+  71 |     |      * @param sender Address whose tokens are being transferred.
+  72 |     |      * @param tokenId Identifier number of a token.
+  73 |     |      * @param owner Address of the current owner of a token.
+  74 |     |      */
+  75 |     |     error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
+  76 |     | 
+  77 |     |     /**
+  78 |     |      * @dev Indicates a failure with the token `sender`. Used in transfers.
+  79 |     |      * @param sender Address whose tokens are being transferred.
+  80 |     |      */
+  81 |     |     error ERC721InvalidSender(address sender);
+  82 |     | 
+  83 |     |     /**
+  84 |     |      * @dev Indicates a failure with the token `receiver`. Used in transfers.
+  85 |     |      * @param receiver Address to which tokens are being transferred.
+  86 |     |      */
+  87 |     |     error ERC721InvalidReceiver(address receiver);
+  88 |     | 
+  89 |     |     /**
+  90 |     |      * @dev Indicates a failure with the `operator`’s approval. Used in transfers.
+  91 |     |      * @param operator Address that may be allowed to operate on tokens without being their owner.
+  92 |     |      * @param tokenId Identifier number of a token.
+  93 |     |      */
+  94 |     |     error ERC721InsufficientApproval(address operator, uint256 tokenId);
+  95 |     | 
+  96 |     |     /**
+  97 |     |      * @dev Indicates a failure with the `approver` of a token to be approved. Used in approvals.
+  98 |     |      * @param approver Address initiating an approval operation.
+  99 |     |      */
+ 100 |     |     error ERC721InvalidApprover(address approver);
+ 101 |     | 
+ 102 |     |     /**
+ 103 |     |      * @dev Indicates a failure with the `operator` to be approved. Used in approvals.
+ 104 |     |      * @param operator Address that may be allowed to operate on tokens without being their owner.
+ 105 |     |      */
+ 106 |     |     error ERC721InvalidOperator(address operator);
+ 107 |     | }
+ 108 |     | 
+ 109 |     | /**
+ 110 |     |  * @dev Standard ERC-1155 Errors
+ 111 |     |  * Interface of the https://eips.ethereum.org/EIPS/eip-6093[ERC-6093] custom errors for ERC-1155 tokens.
+ 112 |     |  */
+ 113 |     | interface IERC1155Errors {
+ 114 |     |     /**
+ 115 |     |      * @dev Indicates an error related to the current `balance` of a `sender`. Used in transfers.
+ 116 |     |      * @param sender Address whose tokens are being transferred.
+ 117 |     |      * @param balance Current balance for the interacting account.
+ 118 |     |      * @param needed Minimum amount required to perform a transfer.
+ 119 |     |      * @param tokenId Identifier number of a token.
+ 120 |     |      */
+ 121 |     |     error ERC1155InsufficientBalance(address sender, uint256 balance, uint256 needed, uint256 tokenId);
+ 122 |     | 
+ 123 |     |     /**
+ 124 |     |      * @dev Indicates a failure with the token `sender`. Used in transfers.
+ 125 |     |      * @param sender Address whose tokens are being transferred.
+ 126 |     |      */
+ 127 |     |     error ERC1155InvalidSender(address sender);
+ 128 |     | 
+ 129 |     |     /**
+ 130 |     |      * @dev Indicates a failure with the token `receiver`. Used in transfers.
+ 131 |     |      * @param receiver Address to which tokens are being transferred.
+ 132 |     |      */
+ 133 |     |     error ERC1155InvalidReceiver(address receiver);
+ 134 |     | 
+ 135 |     |     /**
+ 136 |     |      * @dev Indicates a failure with the `operator`’s approval. Used in transfers.
+ 137 |     |      * @param operator Address that may be allowed to operate on tokens without being their owner.
+ 138 |     |      * @param owner Address of the current owner of a token.
+ 139 |     |      */
+ 140 |     |     error ERC1155MissingApprovalForAll(address operator, address owner);
+ 141 |     | 
+ 142 |     |     /**
+ 143 |     |      * @dev Indicates a failure with the `approver` of a token to be approved. Used in approvals.
+ 144 |     |      * @param approver Address initiating an approval operation.
+ 145 |     |      */
+ 146 |     |     error ERC1155InvalidApprover(address approver);
+ 147 |     | 
+ 148 |     |     /**
+ 149 |     |      * @dev Indicates a failure with the `operator` to be approved. Used in approvals.
+ 150 |     |      * @param operator Address that may be allowed to operate on tokens without being their owner.
+ 151 |     |      */
+ 152 |     |     error ERC1155InvalidOperator(address operator);
+ 153 |     | 
+ 154 |     |     /**
+ 155 |     |      * @dev Indicates an array length mismatch between ids and values in a safeBatchTransferFrom operation.
+ 156 |     |      * Used in batch transfers.
+ 157 |     |      * @param idsLength Length of the array of token identifiers
+ 158 |     |      * @param valuesLength Length of the array of token amounts
+ 159 |     |      */
+ 160 |     |     error ERC1155InvalidArrayLength(uint256 idsLength, uint256 valuesLength);
+ 161 |     | }
+ 162 |     | 
+
+/Users/nikos/Desktop/rareskills-advanced-solidity/week7-8 Testing/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol
+   1 |     | // SPDX-License-Identifier: MIT
+   2 |     | // OpenZeppelin Contracts (last updated v5.1.0) (token/ERC20/ERC20.sol)
+   3 |     | 
+   4 |     | pragma solidity ^0.8.20;
+   5 |     | 
+   6 |     | import {IERC20} from "./IERC20.sol";
+   7 |     | import {IERC20Metadata} from "./extensions/IERC20Metadata.sol";
+   8 |     | import {Context} from "../../utils/Context.sol";
+   9 |     | import {IERC20Errors} from "../../interfaces/draft-IERC6093.sol";
+  10 |     | 
+  11 |     | /**
+  12 |     |  * @dev Implementation of the {IERC20} interface.
+  13 |     |  *
+  14 |     |  * This implementation is agnostic to the way tokens are created. This means
+  15 |     |  * that a supply mechanism has to be added in a derived contract using {_mint}.
+  16 |     |  *
+  17 |     |  * TIP: For a detailed writeup see our guide
+  18 |     |  * https://forum.openzeppelin.com/t/how-to-implement-erc20-supply-mechanisms/226[How
+  19 |     |  * to implement supply mechanisms].
+  20 |     |  *
+  21 |     |  * The default value of {decimals} is 18. To change this, you should override
+  22 |     |  * this function so it returns a different value.
+  23 |     |  *
+  24 |     |  * We have followed general OpenZeppelin Contracts guidelines: functions revert
+  25 |     |  * instead returning `false` on failure. This behavior is nonetheless
+  26 |     |  * conventional and does not conflict with the expectations of ERC-20
+  27 |     |  * applications.
+  28 |     |  */
+  29 |     | abstract contract ERC20 is Context, IERC20, IERC20Metadata, IERC20Errors {
+  30 |     |     mapping(address account => uint256) private _balances;
+  31 |     | 
+  32 |     |     mapping(address account => mapping(address spender => uint256)) private _allowances;
+  33 |     | 
+  34 |     |     uint256 private _totalSupply;
+  35 |     | 
+  36 |     |     string private _name;
+  37 |     |     string private _symbol;
+  38 |     | 
+  39 |     |     /**
+  40 |     |      * @dev Sets the values for {name} and {symbol}.
+  41 |     |      *
+  42 |     |      * All two of these values are immutable: they can only be set once during
+  43 |     |      * construction.
+  44 |     |      */
+  45 | *   |     constructor(string memory name_, string memory symbol_) {
+  46 | *   |         _name = name_;
+  47 | *   |         _symbol = symbol_;
+  48 |     |     }
+  49 |     | 
+  50 |     |     /**
+  51 |     |      * @dev Returns the name of the token.
+  52 |     |      */
+  53 |     |     function name() public view virtual returns (string memory) {
+  54 |     |         return _name;
+  55 |     |     }
+  56 |     | 
+  57 |     |     /**
+  58 |     |      * @dev Returns the symbol of the token, usually a shorter version of the
+  59 |     |      * name.
+  60 |     |      */
+  61 |     |     function symbol() public view virtual returns (string memory) {
+  62 |     |         return _symbol;
+  63 |     |     }
+  64 |     | 
+  65 |     |     /**
+  66 |     |      * @dev Returns the number of decimals used to get its user representation.
+  67 |     |      * For example, if `decimals` equals `2`, a balance of `505` tokens should
+  68 |     |      * be displayed to a user as `5.05` (`505 / 10 ** 2`).
+  69 |     |      *
+  70 |     |      * Tokens usually opt for a value of 18, imitating the relationship between
+  71 |     |      * Ether and Wei. This is the default value returned by this function, unless
+  72 |     |      * it's overridden.
+  73 |     |      *
+  74 |     |      * NOTE: This information is only used for _display_ purposes: it in
+  75 |     |      * no way affects any of the arithmetic of the contract, including
+  76 |     |      * {IERC20-balanceOf} and {IERC20-transfer}.
+  77 |     |      */
+  78 |     |     function decimals() public view virtual returns (uint8) {
+  79 |     |         return 18;
+  80 |     |     }
+  81 |     | 
+  82 |     |     /**
+  83 |     |      * @dev See {IERC20-totalSupply}.
+  84 |     |      */
+  85 |     |     function totalSupply() public view virtual returns (uint256) {
+  86 |     |         return _totalSupply;
+  87 |     |     }
+  88 |     | 
+  89 |     |     /**
+  90 |     |      * @dev See {IERC20-balanceOf}.
+  91 |     |      */
+  92 | *   |     function balanceOf(address account) public view virtual returns (uint256) {
+  93 | *   |         return _balances[account];
+  94 |     |     }
+  95 |     | 
+  96 |     |     /**
+  97 |     |      * @dev See {IERC20-transfer}.
+  98 |     |      *
+  99 |     |      * Requirements:
+ 100 |     |      *
+ 101 |     |      * - `to` cannot be the zero address.
+ 102 |     |      * - the caller must have a balance of at least `value`.
+ 103 |     |      */
+ 104 |     |     function transfer(address to, uint256 value) public virtual returns (bool) {
+ 105 |     |         address owner = _msgSender();
+ 106 |     |         _transfer(owner, to, value);
+ 107 |     |         return true;
+ 108 |     |     }
+ 109 |     | 
+ 110 |     |     /**
+ 111 |     |      * @dev See {IERC20-allowance}.
+ 112 |     |      */
+ 113 | *   |     function allowance(address owner, address spender) public view virtual returns (uint256) {
+ 114 | *   |         return _allowances[owner][spender];
+ 115 |     |     }
+ 116 |     | 
+ 117 |     |     /**
+ 118 |     |      * @dev See {IERC20-approve}.
+ 119 |     |      *
+ 120 |     |      * NOTE: If `value` is the maximum `uint256`, the allowance is not updated on
+ 121 |     |      * `transferFrom`. This is semantically equivalent to an infinite approval.
+ 122 |     |      *
+ 123 |     |      * Requirements:
+ 124 |     |      *
+ 125 |     |      * - `spender` cannot be the zero address.
+ 126 |     |      */
+ 127 | *   |     function approve(address spender, uint256 value) public virtual returns (bool) {
+ 128 | *   |         address owner = _msgSender();
+ 129 | *   |         _approve(owner, spender, value);
+ 130 | *   |         return true;
+ 131 |     |     }
+ 132 |     | 
+ 133 |     |     /**
+ 134 |     |      * @dev See {IERC20-transferFrom}.
+ 135 |     |      *
+ 136 |     |      * Skips emitting an {Approval} event indicating an allowance update. This is not
+ 137 |     |      * required by the ERC. See {xref-ERC20-_approve-address-address-uint256-bool-}[_approve].
+ 138 |     |      *
+ 139 |     |      * NOTE: Does not update the allowance if the current allowance
+ 140 |     |      * is the maximum `uint256`.
+ 141 |     |      *
+ 142 |     |      * Requirements:
+ 143 |     |      *
+ 144 |     |      * - `from` and `to` cannot be the zero address.
+ 145 |     |      * - `from` must have a balance of at least `value`.
+ 146 |     |      * - the caller must have allowance for ``from``'s tokens of at least
+ 147 |     |      * `value`.
+ 148 |     |      */
+ 149 | *   |     function transferFrom(address from, address to, uint256 value) public virtual returns (bool) {
+ 150 | *   |         address spender = _msgSender();
+ 151 | *   |         _spendAllowance(from, spender, value);
+ 152 | *   |         _transfer(from, to, value);
+ 153 | *   |         return true;
+ 154 |     |     }
+ 155 |     | 
+ 156 |     |     /**
+ 157 |     |      * @dev Moves a `value` amount of tokens from `from` to `to`.
+ 158 |     |      *
+ 159 |     |      * This internal function is equivalent to {transfer}, and can be used to
+ 160 |     |      * e.g. implement automatic token fees, slashing mechanisms, etc.
+ 161 |     |      *
+ 162 |     |      * Emits a {Transfer} event.
+ 163 |     |      *
+ 164 |     |      * NOTE: This function is not virtual, {_update} should be overridden instead.
+ 165 |     |      */
+ 166 | *   |     function _transfer(address from, address to, uint256 value) internal {
+ 167 | *   |         if (from == address(0)) {
+ 168 |     |             revert ERC20InvalidSender(address(0));
+ 169 |     |         }
+ 170 | *   |         if (to == address(0)) {
+ 171 |     |             revert ERC20InvalidReceiver(address(0));
+ 172 |     |         }
+ 173 | *   |         _update(from, to, value);
+ 174 |     |     }
+ 175 |     | 
+ 176 |     |     /**
+ 177 |     |      * @dev Transfers a `value` amount of tokens from `from` to `to`, or alternatively mints (or burns) if `from`
+ 178 |     |      * (or `to`) is the zero address. All customizations to transfers, mints, and burns should be done by overriding
+ 179 |     |      * this function.
+ 180 |     |      *
+ 181 |     |      * Emits a {Transfer} event.
+ 182 |     |      */
+ 183 | *   |     function _update(address from, address to, uint256 value) internal virtual {
+ 184 | *   |         if (from == address(0)) {
+ 185 |     |             // Overflow check required: The rest of the code assumes that totalSupply never overflows
+ 186 | *   |             _totalSupply += value;
+ 187 | *   |         } else {
+ 188 | *   |             uint256 fromBalance = _balances[from];
+ 189 | *   |             if (fromBalance < value) {
+ 190 |     |                 revert ERC20InsufficientBalance(from, fromBalance, value);
+ 191 |     |             }
+ 192 |     |             unchecked {
+ 193 |     |                 // Overflow not possible: value <= fromBalance <= totalSupply.
+ 194 | *   |                 _balances[from] = fromBalance - value;
+ 195 |     |             }
+ 196 |     |         }
+ 197 |     | 
+ 198 | *   |         if (to == address(0)) {
+ 199 |     |             unchecked {
+ 200 |     |                 // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.
+ 201 |     |                 _totalSupply -= value;
+ 202 |     |             }
+ 203 |     |         } else {
+ 204 |     |             unchecked {
+ 205 |     |                 // Overflow not possible: balance + value is at most totalSupply, which we know fits into a uint256.
+ 206 | *   |                 _balances[to] += value;
+ 207 |     |             }
+ 208 |     |         }
+ 209 |     | 
+ 210 | *   |         emit Transfer(from, to, value);
+ 211 |     |     }
+ 212 |     | 
+ 213 |     |     /**
+ 214 |     |      * @dev Creates a `value` amount of tokens and assigns them to `account`, by transferring it from address(0).
+ 215 |     |      * Relies on the `_update` mechanism
+ 216 |     |      *
+ 217 |     |      * Emits a {Transfer} event with `from` set to the zero address.
+ 218 |     |      *
+ 219 |     |      * NOTE: This function is not virtual, {_update} should be overridden instead.
+ 220 |     |      */
+ 221 | *   |     function _mint(address account, uint256 value) internal {
+ 222 | *   |         if (account == address(0)) {
+ 223 |     |             revert ERC20InvalidReceiver(address(0));
+ 224 |     |         }
+ 225 | *   |         _update(address(0), account, value);
+ 226 |     |     }
+ 227 |     | 
+ 228 |     |     /**
+ 229 |     |      * @dev Destroys a `value` amount of tokens from `account`, lowering the total supply.
+ 230 |     |      * Relies on the `_update` mechanism.
+ 231 |     |      *
+ 232 |     |      * Emits a {Transfer} event with `to` set to the zero address.
+ 233 |     |      *
+ 234 |     |      * NOTE: This function is not virtual, {_update} should be overridden instead
+ 235 |     |      */
+ 236 |     |     function _burn(address account, uint256 value) internal {
+ 237 |     |         if (account == address(0)) {
+ 238 |     |             revert ERC20InvalidSender(address(0));
+ 239 |     |         }
+ 240 |     |         _update(account, address(0), value);
+ 241 |     |     }
+ 242 |     | 
+ 243 |     |     /**
+ 244 |     |      * @dev Sets `value` as the allowance of `spender` over the `owner` s tokens.
+ 245 |     |      *
+ 246 |     |      * This internal function is equivalent to `approve`, and can be used to
+ 247 |     |      * e.g. set automatic allowances for certain subsystems, etc.
+ 248 |     |      *
+ 249 |     |      * Emits an {Approval} event.
+ 250 |     |      *
+ 251 |     |      * Requirements:
+ 252 |     |      *
+ 253 |     |      * - `owner` cannot be the zero address.
+ 254 |     |      * - `spender` cannot be the zero address.
+ 255 |     |      *
+ 256 |     |      * Overrides to this logic should be done to the variant with an additional `bool emitEvent` argument.
+ 257 |     |      */
+ 258 | *   |     function _approve(address owner, address spender, uint256 value) internal {
+ 259 | *   |         _approve(owner, spender, value, true);
+ 260 |     |     }
+ 261 |     | 
+ 262 |     |     /**
+ 263 |     |      * @dev Variant of {_approve} with an optional flag to enable or disable the {Approval} event.
+ 264 |     |      *
+ 265 |     |      * By default (when calling {_approve}) the flag is set to true. On the other hand, approval changes made by
+ 266 |     |      * `_spendAllowance` during the `transferFrom` operation set the flag to false. This saves gas by not emitting any
+ 267 |     |      * `Approval` event during `transferFrom` operations.
+ 268 |     |      *
+ 269 |     |      * Anyone who wishes to continue emitting `Approval` events on the`transferFrom` operation can force the flag to
+ 270 |     |      * true using the following override:
+ 271 |     |      *
+ 272 |     |      * ```solidity
+ 273 |     |      * function _approve(address owner, address spender, uint256 value, bool) internal virtual override {
+ 274 |     |      *     super._approve(owner, spender, value, true);
+ 275 |     |      * }
+ 276 |     |      * ```
+ 277 |     |      *
+ 278 |     |      * Requirements are the same as {_approve}.
+ 279 |     |      */
+ 280 | *   |     function _approve(address owner, address spender, uint256 value, bool emitEvent) internal virtual {
+ 281 | *   |         if (owner == address(0)) {
+ 282 |     |             revert ERC20InvalidApprover(address(0));
+ 283 |     |         }
+ 284 | *   |         if (spender == address(0)) {
+ 285 |     |             revert ERC20InvalidSpender(address(0));
+ 286 |     |         }
+ 287 | *   |         _allowances[owner][spender] = value;
+ 288 | *   |         if (emitEvent) {
+ 289 | *   |             emit Approval(owner, spender, value);
+ 290 |     |         }
+ 291 |     |     }
+ 292 |     | 
+ 293 |     |     /**
+ 294 |     |      * @dev Updates `owner` s allowance for `spender` based on spent `value`.
+ 295 |     |      *
+ 296 |     |      * Does not update the allowance value in case of infinite allowance.
+ 297 |     |      * Revert if not enough allowance is available.
+ 298 |     |      *
+ 299 |     |      * Does not emit an {Approval} event.
+ 300 |     |      */
+ 301 | *   |     function _spendAllowance(address owner, address spender, uint256 value) internal virtual {
+ 302 | *   |         uint256 currentAllowance = allowance(owner, spender);
+ 303 | *   |         if (currentAllowance != type(uint256).max) {
+ 304 | *   |             if (currentAllowance < value) {
+ 305 | *   |                 revert ERC20InsufficientAllowance(spender, currentAllowance, value);
+ 306 |     |             }
+ 307 |     |             unchecked {
+ 308 | *   |                 _approve(owner, spender, currentAllowance - value, false);
+ 309 |     |             }
+ 310 |     |         }
+ 311 |     |     }
+ 312 |     | }
+ 313 |     | 
+
+/Users/nikos/Desktop/rareskills-advanced-solidity/week7-8 Testing/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol
+  1 |     | // SPDX-License-Identifier: MIT
+  2 |     | // OpenZeppelin Contracts (last updated v5.1.0) (token/ERC20/IERC20.sol)
+  3 |     | 
+  4 |     | pragma solidity ^0.8.20;
+  5 |     | 
+  6 |     | /**
+  7 |     |  * @dev Interface of the ERC-20 standard as defined in the ERC.
+  8 |     |  */
+  9 |     | interface IERC20 {
+ 10 |     |     /**
+ 11 |     |      * @dev Emitted when `value` tokens are moved from one account (`from`) to
+ 12 |     |      * another (`to`).
+ 13 |     |      *
+ 14 |     |      * Note that `value` may be zero.
+ 15 |     |      */
+ 16 |     |     event Transfer(address indexed from, address indexed to, uint256 value);
+ 17 |     | 
+ 18 |     |     /**
+ 19 |     |      * @dev Emitted when the allowance of a `spender` for an `owner` is set by
+ 20 |     |      * a call to {approve}. `value` is the new allowance.
+ 21 |     |      */
+ 22 |     |     event Approval(address indexed owner, address indexed spender, uint256 value);
+ 23 |     | 
+ 24 |     |     /**
+ 25 |     |      * @dev Returns the value of tokens in existence.
+ 26 |     |      */
+ 27 |     |     function totalSupply() external view returns (uint256);
+ 28 |     | 
+ 29 |     |     /**
+ 30 |     |      * @dev Returns the value of tokens owned by `account`.
+ 31 |     |      */
+ 32 |     |     function balanceOf(address account) external view returns (uint256);
+ 33 |     | 
+ 34 |     |     /**
+ 35 |     |      * @dev Moves a `value` amount of tokens from the caller's account to `to`.
+ 36 |     |      *
+ 37 |     |      * Returns a boolean value indicating whether the operation succeeded.
+ 38 |     |      *
+ 39 |     |      * Emits a {Transfer} event.
+ 40 |     |      */
+ 41 |     |     function transfer(address to, uint256 value) external returns (bool);
+ 42 |     | 
+ 43 |     |     /**
+ 44 |     |      * @dev Returns the remaining number of tokens that `spender` will be
+ 45 |     |      * allowed to spend on behalf of `owner` through {transferFrom}. This is
+ 46 |     |      * zero by default.
+ 47 |     |      *
+ 48 |     |      * This value changes when {approve} or {transferFrom} are called.
+ 49 |     |      */
+ 50 |     |     function allowance(address owner, address spender) external view returns (uint256);
+ 51 |     | 
+ 52 |     |     /**
+ 53 |     |      * @dev Sets a `value` amount of tokens as the allowance of `spender` over the
+ 54 |     |      * caller's tokens.
+ 55 |     |      *
+ 56 |     |      * Returns a boolean value indicating whether the operation succeeded.
+ 57 |     |      *
+ 58 |     |      * IMPORTANT: Beware that changing an allowance with this method brings the risk
+ 59 |     |      * that someone may use both the old and the new allowance by unfortunate
+ 60 |     |      * transaction ordering. One possible solution to mitigate this race
+ 61 |     |      * condition is to first reduce the spender's allowance to 0 and set the
+ 62 |     |      * desired value afterwards:
+ 63 |     |      * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+ 64 |     |      *
+ 65 |     |      * Emits an {Approval} event.
+ 66 |     |      */
+ 67 |     |     function approve(address spender, uint256 value) external returns (bool);
+ 68 |     | 
+ 69 |     |     /**
+ 70 |     |      * @dev Moves a `value` amount of tokens from `from` to `to` using the
+ 71 |     |      * allowance mechanism. `value` is then deducted from the caller's
+ 72 |     |      * allowance.
+ 73 |     |      *
+ 74 |     |      * Returns a boolean value indicating whether the operation succeeded.
+ 75 |     |      *
+ 76 |     |      * Emits a {Transfer} event.
+ 77 |     |      */
+ 78 |     |     function transferFrom(address from, address to, uint256 value) external returns (bool);
+ 79 |     | }
+ 80 |     | 
+
+/Users/nikos/Desktop/rareskills-advanced-solidity/week7-8 Testing/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol
+  1 |     | // SPDX-License-Identifier: MIT
+  2 |     | // OpenZeppelin Contracts (last updated v5.1.0) (token/ERC20/extensions/IERC20Metadata.sol)
+  3 |     | 
+  4 |     | pragma solidity ^0.8.20;
+  5 |     | 
+  6 |     | import {IERC20} from "../IERC20.sol";
+  7 |     | 
+  8 |     | /**
+  9 |     |  * @dev Interface for the optional metadata functions from the ERC-20 standard.
+ 10 |     |  */
+ 11 |     | interface IERC20Metadata is IERC20 {
+ 12 |     |     /**
+ 13 |     |      * @dev Returns the name of the token.
+ 14 |     |      */
+ 15 |     |     function name() external view returns (string memory);
+ 16 |     | 
+ 17 |     |     /**
+ 18 |     |      * @dev Returns the symbol of the token.
+ 19 |     |      */
+ 20 |     |     function symbol() external view returns (string memory);
+ 21 |     | 
+ 22 |     |     /**
+ 23 |     |      * @dev Returns the decimals places of the token.
+ 24 |     |      */
+ 25 |     |     function decimals() external view returns (uint8);
+ 26 |     | }
+ 27 |     | 
+
+/Users/nikos/Desktop/rareskills-advanced-solidity/week7-8 Testing/lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/utils/Context.sol
+  1 |     | // SPDX-License-Identifier: MIT
+  2 |     | // OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)
+  3 |     | 
+  4 |     | pragma solidity ^0.8.20;
+  5 |     | 
+  6 |     | /**
+  7 |     |  * @dev Provides information about the current execution context, including the
+  8 |     |  * sender of the transaction and its data. While these are generally available
+  9 |     |  * via msg.sender and msg.data, they should not be accessed in such a direct
+ 10 |     |  * manner, since when dealing with meta-transactions the account sending and
+ 11 |     |  * paying for execution may not be the actual sender (as far as an application
+ 12 |     |  * is concerned).
+ 13 |     |  *
+ 14 |     |  * This contract is only required for intermediate, library-like contracts.
+ 15 |     |  */
+ 16 |     | abstract contract Context {
+ 17 | *   |     function _msgSender() internal view virtual returns (address) {
+ 18 | *   |         return msg.sender;
+ 19 |     |     }
+ 20 |     | 
+ 21 |     |     function _msgData() internal view virtual returns (bytes calldata) {
+ 22 |     |         return msg.data;
+ 23 |     |     }
+ 24 |     | 
+ 25 |     |     function _contextSuffixLength() internal view virtual returns (uint256) {
+ 26 |     |         return 0;
+ 27 |     |     }
+ 28 |     | }
+ 29 |     | 
+
+/Users/nikos/Desktop/rareskills-advanced-solidity/week7-8 Testing/src/Dex/Dex.sol
+  1 |     | // SPDX-License-Identifier: MIT
+  2 |     | pragma solidity ^0.8.0;
+  3 |     | 
+  4 |     | import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+  5 |     | import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+  6 |     | import "@openzeppelin/contracts/access/Ownable.sol";
+  7 |     | 
+  8 | *   | contract Dex is Ownable {
+  9 |     |     address public token1;
+ 10 |     |     address public token2;
+ 11 |     | 
+ 12 | *   |     constructor() Ownable(msg.sender) {}
+ 13 |     | 
+ 14 | *   |     function setTokens(address _token1, address _token2) public onlyOwner {
+ 15 | *   |         token1 = _token1;
+ 16 | *   |         token2 = _token2;
+ 17 |     |     }
+ 18 |     | 
+ 19 | *   |     function addLiquidity(address token_address, uint256 amount) public onlyOwner {
+ 20 | *   |         IERC20(token_address).transferFrom(msg.sender, address(this), amount);
+ 21 |     |     }
+ 22 |     | 
+ 23 | *   |     function swap(address from, address to, uint256 amount) public {
+ 24 | *   |         require((from == token1 && to == token2) || (from == token2 && to == token1), "Invalid tokens");
+ 25 | *   |         require(IERC20(from).balanceOf(msg.sender) >= amount, "Not enough to swap");
+ 26 | *   |         uint256 swapAmount = getSwapPrice(from, to, amount);
+ 27 | *   |         IERC20(from).transferFrom(msg.sender, address(this), amount);
+ 28 | *   |         IERC20(to).approve(address(this), swapAmount);
+ 29 | *   |         IERC20(to).transferFrom(address(this), msg.sender, swapAmount);
+ 30 |     |     }
+ 31 |     | 
+ 32 | *   |     function getSwapPrice(address from, address to, uint256 amount) public view returns (uint256) {
+ 33 | *   |         return ((amount * IERC20(to).balanceOf(address(this))) / IERC20(from).balanceOf(address(this)));
+ 34 |     |     }
+ 35 |     | 
+ 36 |     |     function approve(address spender, uint256 amount) public {
+ 37 |     |         SwappableToken(token1).approve(msg.sender, spender, amount);
+ 38 |     |         SwappableToken(token2).approve(msg.sender, spender, amount);
+ 39 |     |     }
+ 40 |     | 
+ 41 |     |     function balanceOf(address token, address account) public view returns (uint256) {
+ 42 |     |         return IERC20(token).balanceOf(account);
+ 43 |     |     }
+ 44 |     | }
+ 45 |     | 
+ 46 | *   | contract SwappableToken is ERC20 {
+ 47 |     |     address private _dex;
+ 48 |     | 
+ 49 | *   |     constructor(address dexInstance, string memory name, string memory symbol, uint256 initialSupply)
+ 50 | *   |         ERC20(name, symbol)
+ 51 |     |     {
+ 52 | *   |         _mint(msg.sender, initialSupply);
+ 53 | *   |         _dex = dexInstance;
+ 54 |     |     }
+ 55 |     | 
+ 56 |     |     function approve(address owner, address spender, uint256 amount) public {
+ 57 |     |         require(owner != _dex, "InvalidApprover");
+ 58 |     |         super._approve(owner, spender, amount);
+ 59 |     |     }
+ 60 |     | }
+ 61 |     | 
+
+/Users/nikos/Desktop/rareskills-advanced-solidity/week7-8 Testing/src/Dex/EchidnaContract.sol
+  1 |     | // SPDX-License-Identifier: MIT
+  2 |     | pragma solidity ^0.8.0;
+  3 |     | 
+  4 |     | import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+  5 |     | 
+  6 |     | import {Dex, SwappableToken} from "./Dex.sol";
+  7 |     | // run in week7-8%20Testing/
+  8 |     | //echidna . --config src/Dex/config.yaml --contract EchidnaContract
+  9 |     | 
+ 10 | *r  | contract EchidnaContract {
+ 11 |     |     Dex dex;
+ 12 |     |     SwappableToken token1;
+ 13 |     |     SwappableToken token2;
+ 14 |     | 
+ 15 |     |     address echidna; // = tx.origin;
+ 16 |     | 
+ 17 |     |     event Debug(uint256);
+ 18 |     | 
+ 19 | *   |     constructor() {
+ 20 | *   |         echidna = msg.sender;
+ 21 |     | 
+ 22 | *   |         dex = new Dex();
+ 23 |     | 
+ 24 | *   |         token1 = new SwappableToken(address(this), "Token1", "TK1", 110 ether);
+ 25 | *   |         token2 = new SwappableToken(address(this), "Token2", "TK1", 110 ether);
+ 26 |     | 
+ 27 |     |         //setup dex
+ 28 | *   |         token1.approve(address(dex), 100 ether);
+ 29 | *   |         token2.approve(address(dex), 100 ether);
+ 30 |     | 
+ 31 | *   |         dex.setTokens(address(token1), address(token2));
+ 32 |     | 
+ 33 | *   |         dex.addLiquidity(address(token1), 100 ether);
+ 34 | *   |         dex.addLiquidity(address(token2), 100 ether);
+ 35 |     | 
+ 36 |     |         //setup echidna
+ 37 |     |         // token1.transfer(echidna, 10);
+ 38 |     |         // token2.transfer(echidna, 10);
+ 39 | *   |         emit Debug(token1.balanceOf(address(this)));
+ 40 | *   |         emit Debug(token1.balanceOf(address(this)));
+ 41 |     | 
+ 42 |     |         //renounce ownership
+ 43 | *   |         dex.transferOwnership(address(0x01));
+ 44 |     |     }
+ 45 |     | 
+ 46 | *   |     function swap12(uint256 amount) public {
+ 47 |     |         // dex.approve(address(dex), amount);
+ 48 | *r  |         dex.swap(address(token1), address(token2), amount);
+ 49 |     |     }
+ 50 |     | 
+ 51 | *   |     function swap21(uint256 amount) public {
+ 52 | *r  |         dex.swap(address(token2), address(token1), amount);
+ 53 |     |     }
+ 54 |     | 
+ 55 |     |     function echidna_check() public returns (bool) {
+ 56 |     |         emit Debug(dex.balanceOf(address(token1), address(this)));
+ 57 |     |         emit Debug(dex.balanceOf(address(token2), address(this)));
+ 58 |     |         return (
+ 59 |     |             dex.balanceOf(address(token1), address(this)) > 10 ether
+ 60 |     |                 && dex.balanceOf(address(token2), address(this)) > 10 ether
+ 61 |     |         );
+ 62 |     |     }
+ 63 |     | }
+ 64 |     | 
+
