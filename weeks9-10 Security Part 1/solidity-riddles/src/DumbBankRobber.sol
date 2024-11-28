@@ -1,4 +1,4 @@
-pragma solidity 0.8.15;
+pragma solidity 0.8.20;
 
 contract DumbBank {
     mapping(address => uint256) public balances;

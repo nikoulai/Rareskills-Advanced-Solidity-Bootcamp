@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.15;
+pragma solidity 0.8.20;
 
 // You've been approved to claim 1 ETH. Claim more than your fair share.
 contract DoubleTake {
@@ -17,7 +17,7 @@ contract DoubleTake {
         require(!used[signature], "signature already used");
         used[signature] = true;
 
-        (bool ok, ) = user.call{value: amount}("");
+        (bool ok,) = user.call{value: amount}("");
         require(ok, "transfer failed");
     }
 }

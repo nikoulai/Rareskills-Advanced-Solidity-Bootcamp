@@ -1,4 +1,4 @@
-pragma solidity 0.8.15;
+pragma solidity 0.8.20;
 
 contract AssignVotes {
     uint256 public proposalCounter;
@@ -19,17 +19,8 @@ contract AssignVotes {
 
     constructor() payable {}
 
-    function createProposal(
-        address target,
-        bytes calldata data,
-        uint256 value
-    ) external {
-        proposals[proposalCounter] = Proposal({
-            target: target,
-            data: data,
-            value: value,
-            votes: 0
-        });
+    function createProposal(address target, bytes calldata data, uint256 value) external {
+        proposals[proposalCounter] = Proposal({target: target, data: data, value: value, votes: 0});
 
         unchecked {
             ++proposalCounter;
@@ -66,7 +57,7 @@ contract AssignVotes {
         bytes memory data = p.data;
 
         delete proposals[proposal];
-        (bool success, ) = target.call{value: value}(data);
+        (bool success,) = target.call{value: value}(data);
         require(success, "exec failed");
     }
 }

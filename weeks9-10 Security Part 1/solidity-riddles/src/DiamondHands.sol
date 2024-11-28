@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.15;
+pragma solidity ^0.8.20;
+
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -28,9 +29,9 @@ contract DiamondHands {
     ///////////////////////// Storage /////////////////////////
     NFTDeposit[] public deposits;
     bool public gameOver;
-    uint public deadline;
+    uint256 public deadline;
     bool public withdrawn;
-    uint public LOCK = 1;
+    uint256 public LOCK = 1;
 
     struct NFTDeposit {
         address owner;
@@ -61,11 +62,11 @@ contract DiamondHands {
     /// @dev deletes the loser from the array of NFT deposits and transfers everyone's NFTs back to them
     function loseDiamondHands() external nonReentrant {
         bool onlyOwnercanCall;
-        uint ownerindex;
+        uint256 ownerindex;
         gameOver = true;
         // delete loser
-        uint len = deposits.length;
-        for (uint i = 0; i < len; i++) {
+        uint256 len = deposits.length;
+        for (uint256 i = 0; i < len; i++) {
             nft.safeTransferFrom(address(this), deposits[i].owner, deposits[i].id);
 
             if (deposits[i].owner == msg.sender) {
@@ -82,7 +83,7 @@ contract DiamondHands {
     function withdraw() external {
         require(withdrawn == false, "already withdrawn");
         require(block.timestamp > deadline, "Can only withdraw after deadline");
-        for (uint i = 0; i < deposits.length; i++) {
+        for (uint256 i = 0; i < deposits.length; i++) {
             if (deposits[i].owner != address(0)) {
                 payable((deposits[i].owner)).send(1 ether);
             }
@@ -126,7 +127,7 @@ contract ChickenBonds is ERC721 {
     ];
 
     constructor() ERC721("ChickenBonds", "CB") {
-        for (uint i; i < owners.length; i++) {
+        for (uint256 i; i < owners.length; i++) {
             _mint(owners[i], i + 1);
         }
     }

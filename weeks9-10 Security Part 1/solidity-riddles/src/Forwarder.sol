@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.20;
 
 contract Wallet {
     address public immutable forwarder;
@@ -11,14 +11,14 @@ contract Wallet {
 
     function sendEther(address destination, uint256 amount) public {
         require(msg.sender == forwarder, "sender must be forwarder contract");
-        (bool success, ) = destination.call{value: amount}("");
+        (bool success,) = destination.call{value: amount}("");
         require(success, "failed");
     }
 }
 
 contract Forwarder {
     function functionCall(address a, bytes calldata data) public {
-        (bool success, ) = a.call(data);
+        (bool success,) = a.call(data);
         require(success, "forward failed");
     }
 }

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
-import "forge-std/Test.sol";
-import "../src/Overmint1-ERC1155.sol";
+import {Test, console} from "forge-std/Test.sol";
+import {Overmint1_ERC1155, Overmint1_ERC1155_Attacker} from "../src/Overmint1-ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 // import "../src/Overmint1_ERC1155_Attacker.sol";
 
@@ -24,6 +24,6 @@ contract Overmint1_ERC1155_Test is Test {
         vm.stopPrank();
 
         assertEq(victimContract.balanceOf(attackerWallet, 0), 5);
-        assertLt(attackerWallet.nonce, 3, "must exploit in two transactions or less");
+        assertLt(vm.getNonce(attackerWallet), 3, "must exploit in two transactions or less");
     }
 }

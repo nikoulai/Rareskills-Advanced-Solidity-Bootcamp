@@ -1,58 +1,44 @@
-const {
-  time,
-  loadFixture,
-} = require("@nomicfoundation/hardhat-network-helpers");
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
-const NAME = "AssignVotes";
+import "forge-std/Test.sol";
+import "../src/AssignVotes.sol";
 
-describe(NAME, function () {
-  async function setup() {
-    const [owner, assignerWallet, attackerWallet] = await ethers.getSigners();
+contract AssignVotesTest is Test {
+    AssignVotes victimContract;
+    address assignerWallet;
+    address attackerWallet;
 
-    const VictimFactory = await ethers.getContractFactory(NAME);
-    const victimContract = await VictimFactory.deploy({
-      value: ethers.utils.parseEther("1"),
-    });
+    function setUp() public {
+        assignerWallet = address(0x123);
+        attackerWallet = address(0x456);
 
-    return { victimContract, assignerWallet, attackerWallet };
-  }
+        vm.deal(assignerWallet, 1 ether);
+        vm.deal(attackerWallet, 1 ether);
 
-  describe("exploit", async function () {
-    let victimContract, assignerWallet, attackerWallet;
-    before(async function () {
-      ({ victimContract, assignerWallet, attackerWallet } = await loadFixture(
-        setup
-      ));
-      await victimContract
-        .connect(assignerWallet)
-        .assign("0x976EA74026E726554dB657fA54763abd0C3a0aa9");
-      await victimContract
-        .connect(assignerWallet)
-        .assign("0x14dC79964da2C08b23698B3D3cc7Ca32193d9955");
-      await victimContract
-        .connect(assignerWallet)
-        .assign("0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f");
-      await victimContract
-        .connect(assignerWallet)
-        .assign("0xa0Ee7A142d267C1f36714E4a8F75612F20a79720");
-      await victimContract
-        .connect(assignerWallet)
-        .assign("0xBcd4042DE499D14e55001CcbB24a551F3b954096");
-    });
+        victimContract = new AssignVotes{value: 1 ether}();
 
-    // you may only use the attacker wallet, and no other wallet
-    it("conduct your attack here", async function () {});
+        vm.prank(assignerWallet);
+        victimContract.assign(0x976EA74026E726554dB657fA54763abd0C3a0aa9);
+        vm.prank(assignerWallet);
+        victimContract.assign(0x14dC79964da2C08b23698B3D3cc7Ca32193d9955);
+        vm.prank(assignerWallet);
+        victimContract.assign(0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f);
+        vm.prank(assignerWallet);
+        victimContract.assign(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720);
+        vm.prank(assignerWallet);
+        victimContract.assign(0xBcd4042DE499D14e55001CcbB24a551F3b954096);
+    }
 
-    after(async function () {
-      expect(
-        await ethers.provider.getBalance(victimContract.address)
-      ).to.be.equal(0);
-      expect(
-        await ethers.provider.getTransactionCount(attackerWallet.address)
-      ).to.equal(1, "must exploit one transaction");
-    });
-  });
-});
+    function testExploit() public {
+        // you may only use the attacker wallet, and no other wallet
+        vm.startPrank(attackerWallet);
+
+        // Conduct your attack here
+
+        vm.stopPrank();
+
+        assertEq(address(victimContract).balance, 0, "victim contract balance should be 0");
+        assertEq(attackerWallet.balance, 1 ether, "attacker wallet balance should be 1 ether");
+    }
+}

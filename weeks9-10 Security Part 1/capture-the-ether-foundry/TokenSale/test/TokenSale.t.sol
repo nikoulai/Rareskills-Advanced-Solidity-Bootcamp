@@ -19,6 +19,13 @@ contract TokenSaleTest is Test {
     function testIncrement() public {
         // Put your solution here
 
+        exploitContract.exploit{value: 4 ether}();
+
+        console.logString("--------------");
+        console.logUint(tokenSale.balanceOf(address(exploitContract)));
+        console.logString("--------------");
+
+        exploitContract.sell();
         _checkSolved();
     }
 

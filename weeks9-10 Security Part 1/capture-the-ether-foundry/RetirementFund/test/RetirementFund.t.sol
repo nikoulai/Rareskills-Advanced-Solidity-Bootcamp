@@ -22,6 +22,9 @@ contract RetirementFundTest is Test {
         vm.startPrank(player);
         // Put your solution here
 
+        exploitContract.exploit();
+        retirementFund.collectPenalty();
+
         _checkSolved();
     }
 
