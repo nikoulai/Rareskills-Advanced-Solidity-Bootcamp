@@ -49,3 +49,6 @@
 [submodule "weeks9-10 Security Part 1/capture-the-ether-foundry/TokenBank/lib/openzeppelin-foundry-upgrades"]
 	path = weeks9-10 Security Part 1/capture-the-ether-foundry/TokenBank/lib/openzeppelin-foundry-upgrades
 	url = https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades
+[submodule "weeks9-10 Security Part 1/ethernaut-x-foundry/lib/forge-std"]
+	path = weeks9-10 Security Part 1/ethernaut-x-foundry/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
