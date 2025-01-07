@@ -1,0 +1,45 @@
+ 
+/** 
+ *  SEND_ETHER HUFF EXERCISE
+ *  
+ *  The task is to enable this contract, when called with function `sendEther(address)` to
+ *  transfer the value sent with the call to the address in the argument.
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+
+#include "Huff-Console/Console.huff"
+
+#define function sendEther(address) payable returns()
+
+#define macro SENDETHER() = takes (1) returns (0) {
+
+	0x00 0x00 0x00 0x00  
+	swap4
+	callvalue
+	swap1
+	// 0x8fc //2300
+	0x00
+	call
+}
+
+ #define macro MAIN() = takes(0) returns(0) {
+
+	0x00 calldataload
+	// LOG_CALLDATA(0x00, 0x44, 0x00)	
+	// LOG_STACK_6(0x00)
+	0xE0 shr
+
+
+	__FUNC_SIG(sendEther)      
+    	eq                   
+    	_sendEther jumpi      
+    	0x00 0x00 revert
+
+_sendEther:
+	0x04 calldataload      // []
+        SENDETHER()
+        0x00 mstore 
+        0x20 0x00 return
+    
+ }

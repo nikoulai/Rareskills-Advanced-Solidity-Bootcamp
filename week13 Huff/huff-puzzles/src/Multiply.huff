@@ -1,0 +1,87 @@
+#include "Huff-Console/Console.huff"
+
+/** 
+ *  MULTIPLY HUFF EXERCISE
+ *
+ *  When writing solidity, we most times have to perform some mathematical operations like multiplication etc
+ *  
+ *  The task is to write within the `MAIN` macro below, a function named `multiply` that takes in 2 uint256s, and returns their product. Be sure to revert on overflow
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+
+#define function multiply(uint256, uint256) payable returns(uint256)
+
+#define macro MULTIPLY() = takes (2) returns (1) {
+
+	dup1 	  //[b,a,a]
+
+	iszero  //[res, b, a]
+
+	multiply jumpi
+
+	dup1 //[b,b,a]
+
+	0x01  //[1,b,b,a]
+
+	eq 
+
+	multiply jumpi
+
+	//general case
+
+	dup2
+
+	dup2 //[b,a,b,a]
+
+	0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+
+
+	div // [max/b, a, b, a]
+
+	dup1 // [max/b, max/b, a, b, a]
+
+	swap2 //[a, max/b, max/b, b, a]
+
+	lt //[res, max/b, b, a]
+
+	multiply_pop jumpi
+
+	dup3  //[a, max/b, b, a]
+
+	eq 
+
+	multiply jumpi
+
+    	0x00 0x00 revert
+
+multiply_pop:
+	pop
+
+multiply:
+	mul
+
+}
+
+
+#define macro MAIN() = takes(0) returns(0) {
+
+	0x00 calldataload
+	LOG_CALLDATA(0x00, 0x44, 0x00)	
+	// LOG_STACK_6(0x00)
+	0xE0 shr
+
+
+	__FUNC_SIG(multiply)      
+    	eq                   
+    	_multiply jumpi      
+    	0x00 0x00 revert
+
+_multiply:
+	0x04 calldataload      // []
+	0x24 calldataload
+        MULTIPLY()
+        0x00 mstore 
+        0x20 0x00 return
+
+}

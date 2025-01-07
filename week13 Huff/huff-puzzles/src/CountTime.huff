@@ -1,0 +1,97 @@
+#include "Huff-Console/Console.huff"
+/** 
+ *  COUNT_TIME HUFF EXERCISE
+ *
+ *  The task is to write within the `MAIN` macro below, functions named `getTimeElapsed` and `getTimeUntil`.
+ * 
+ *  `getTimeElapsed` receives the uint256 parameter (_timestamp) and counts how much time elapsed since the provided _timestamp, it should return 0 if the provided timestamp is in the future 
+ *  `getTimeUntil` receives uint256 parameter (_timestamp) and counts how much time remains until the provided _timestamp, it should return 0 if the provided timestamp is in the past
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+
+
+#define function getTimeElapsed(uint256) payable returns(uint256)
+#define function getTimeUntil(uint256) payable returns(uint256)
+
+#define macro GET_TIME_DIFF() = takes(2) returns(1) {
+	//[blocktime,_timestamp ]
+	dup2
+	dup2
+
+	gt //is timestamp greater
+
+	iszero
+	_lt jumpi	
+
+	sub
+	LOG_STACK_1(0x40)
+	end jump  //is this the right way to exit macro?
+
+_lt:
+	pop
+	pop
+	0x00
+end:
+
+        0x00 mstore 
+}
+
+#define macro GET_TIME_ELAPSED() = takes(2) returns(1) {
+
+	// LOG_STACK_2(0x10)
+	GET_TIME_DIFF()
+}
+#define macro GET_TIME_UNTIL() = takes(2) returns(1) {
+	swap1 
+
+	GET_TIME_DIFF()
+}
+
+#define macro MAIN() = takes(0) returns(0) {
+
+	0x04 calldataload
+
+	timestamp
+
+	0x00 calldataload      
+
+	0xE0 shr
+
+	// LINE_BREAK(0x00, 0x20)
+	dup1
+
+	__FUNC_SIG(getTimeElapsed)      
+
+	// LOG_STACK_2(0x10)
+    	eq                   
+	// LOG_STACK_1(0x10)
+    	timeElapsed jumpi      
+
+	__FUNC_SIG(getTimeUntil)      
+
+	eq
+
+	timeUntil jumpi
+	// pop
+	// pop
+	// pop
+	// pop
+	// LOG_STACK_1(0x00)
+
+    	0x00 0x00 revert
+
+	// end jump
+
+timeElapsed:
+	pop
+        GET_TIME_ELAPSED()
+
+	final jump
+
+timeUntil:
+	GET_TIME_UNTIL()	
+
+final:
+        0x20 0x00 return
+}

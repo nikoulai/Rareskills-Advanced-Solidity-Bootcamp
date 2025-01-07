@@ -1,0 +1,100 @@
+
+/** 
+ *  MAX_OF_ARRAY HUFF EXERCISE
+ *  
+ *  In this task, Given an abi encoded array of uint256, return its maximum value. Revert if the array is empty.
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+
+#define function maxOfArray(uint256[]) payable returns(uint256)
+
+
+#define macro MAX() = takes (3) returns (1) {
+	
+start:
+
+	dup1 // [length, length, load_point, sum]
+
+
+	iszero
+
+	end jumpi
+
+	0x01  //[1, length, load_point, sum]
+
+	swap1 //[length, 1, load_point, sum]
+
+	sub // [length, load_point, sum]
+
+	swap1 // [load_point, length, sum]
+
+	dup1 // [load_point, load_point, length, sum]
+
+	
+	calldataload  //[element, load_point, length, sum]
+
+	swap1 //[load_point, element, length, sum]
+
+	0x20 
+
+	add //[new_load_point, element, length, sum]
+
+	swap3 //[sum, element, length, new_load_point]
+
+	dup2
+	
+	dup2
+
+	gt 
+
+	keepmax jumpi
+	//else keep the element
+	pop
+	done jump
+keepmax:
+	swap1
+	pop
+
+done:
+
+	swap2
+
+	swap1
+
+	start jump
+
+end:
+	pop
+	pop
+}
+
+#define macro MAIN() = takes(0) returns(0) {
+	// LOG_CALLDATA(0x00, 0xa4, 0x00)	
+	0x00 calldataload
+	// LOG_STACK_6(0x00)
+	0xE0 shr
+
+
+	__FUNC_SIG(maxOfArray)      
+    	eq                   
+    	_max jumpi      
+    	0x00 0x00 revert
+
+_max:
+	0x00 //sum counter
+	0x04 calldataload // where the value should start
+	0x24
+	add
+	0x24 calldataload      // it's length [length, load_point, sum]
+	dup1
+	iszero
+	rev jumpi
+        MAX()
+        0x00 mstore 
+        0x20 0x00 return
+rev:
+	pop
+	pop
+	0x00 0x00 revert
+}

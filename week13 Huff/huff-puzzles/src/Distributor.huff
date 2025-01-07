@@ -1,0 +1,96 @@
+ 
+/** 
+ *  DISTRIBUTE HUFF EXERCISE
+ *  
+ *  The task is to enable this contract, when called with function `distribute(address[])` to
+ *  distribute the value sent with the call to each address in the address array as evenly.
+ *  Revert if array length is 0
+ *  Assume that array length would always be less than or equal to msg.value
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+#include "Huff-Console/Console.huff"
+
+ #define function distribute(address[]) payable returns()
+
+
+#define macro DISTRIBUTE() = takes (2) returns (1) {
+
+	//[length, load_point]
+	dup1 //[length, length, load_point]
+
+	callvalue //[callvalue, length, length, load_point]
+
+	div //[share, length, load_point]
+start:
+	
+	swap2 //[load_point, length, share]
+
+	dup1 //[load_point, load_point, length, share]
+
+	calldataload  //[element, load_point, length, share]
+
+	swap1 //[load_point, element, length, share]
+
+	0x20 
+
+	add //[new_load_point, element, length, share]
+
+	swap3 //[share, element, length, new_load_point]	
+
+	dup1 //[share, share, element, length, new_load_point]	
+
+	swap2 //[element, share, share, length, new_load_point]	
+
+	0x00 0x00 0x00 0x00 swap4 swap1 swap5 swap1  0x00 
+	LOG_STACK_7(0x00)
+	call
+	pop
+	// iszero
+	// _fail jumpi
+
+	swap1 //[length, share, load_point]
+
+	0x01 swap1 //[length, 1, share, load_point]
+	
+	sub //[length, share, load_point]
+
+	dup1 //[length, length, share, load_point]
+
+	iszero
+
+	end jumpi
+
+	start jump
+	
+// _fail:
+// 	0x00 0x00 revert
+end:
+	
+}
+ #define macro MAIN() = takes(0) returns(0) {
+   
+   	// LOG_CALLDATA(0x00, 0xa4, 0x00)	
+	0x00 calldataload
+	// LOG_STACK_6(0x00)
+	0xE0 shr
+
+	__FUNC_SIG(distribute)      
+    	eq                   
+    	_max jumpi      
+    	0x00 0x00 revert
+
+_max:
+	0x04 calldataload // where the value should start
+	0x24
+	add
+	0x24 calldataload      //it's length [length, load_point]
+	dup1
+	iszero
+	_rev jumpi
+        DISTRIBUTE()
+        0x00 mstore 
+        0x20 0x00 return
+_rev:
+	0x00 0x00 revert
+ }

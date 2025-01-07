@@ -1,0 +1,165 @@
+/** 
+ *  SUM_ARRAY HUFF EXERCISE
+ *
+ * In this puzzle, the task is to simulate an array in Huff using the "exact" storage pattern as solidity. Expected functions can; 
+ *      - Push numbers onto a array, 
+ *      - Pop the last index from the array,
+ *      - View what's stored at an index, 
+ *      - Gets the length of the array, 
+ *      - Write to an index if it is valid.
+ *
+ *      - Writes and reads outside of length revert. 
+ *      - Popping off a zero length array reverts.
+ *
+ *  NOTICE: The contract should revert when an unrecognized function is called
+ */
+#include "Huff-Console/Console.huff"
+
+ #define function pushh(uint256 num) payable returns()
+ #define function popp() payable returns()
+ #define function read(uint256 index) payable returns(uint256)
+ #define function length() payable returns(uint256)
+ #define function write(uint256 index, uint256 num) payable returns()
+
+ #define error OutOfBounds()
+ #define error ZeroArray()
+
+ #define constant ARRAY_SLOT = FREE_STORAGE_POINTER()
+
+#define macro GET_ARRAY_SLOT() = takes(0) returns(1) {
+    [ARRAY_SLOT]  // Get the raw slot for length
+}
+
+#define macro GET_ARRAY_DATA_SLOT() = takes(0) returns(1) {
+    [ARRAY_SLOT]     // Get the base slot
+    0x00 mstore      // Store it at memory 0
+    0x20 0x00 sha3   // Hash it to get data slot
+}
+
+#define macro GET_ELEMENT_SLOT() = takes(1) returns(1) {
+    // [index]
+    GET_ARRAY_DATA_SLOT()  // [data_slot, index]
+    add                    // [data_slot + index]
+}
+
+ #define macro PUSHH() = takes(1) returns(0) {
+   LENGTH()           // [length, num]
+   dup1              // [length, length, num]
+   swap2             // [num, length, length]
+   swap1             // [length, num, length]
+   GET_ELEMENT_SLOT()
+   sstore            // [length]
+
+   0x01 add          // [new_length]
+   GET_ARRAY_SLOT()  // [array_slot, new_length]
+   sstore 
+
+ }
+
+ #define macro POPP() = takes(0) returns(0) {
+    // Get current length and check if zero
+    LENGTH()          // [length]
+    dup1             // [length, length]
+    iszero           // [is_zero, length]
+    zeroArray jumpi  // [length]
+
+    // Decrement length
+    0x01 swap1 sub   // [length-1]
+    // Update length
+    GET_ARRAY_SLOT() // [array_slot, new_length]
+    sstore 
+    _return jump      // Jump to return to avoid hitting error
+
+    zeroArray:
+        __ERROR(ZeroArray)  // Revert if array is empty
+            0x00 mstore           // []
+            0x04 0x00 revert
+    _return:
+ }
+
+ #define macro READ() = takes(1) returns(1) {
+    // [index]
+    dup1            // [index, index]
+    LENGTH()        // [length, index, index]
+    dup1            // [length, length, index, index]
+    swap2           // [index, length, length, index]
+    lt              // [index<length, length, index]
+    continue jumpi  // [length, index]
+    
+    pop             // [index]
+    __ERROR(OutOfBounds)
+    0x00 mstore           // []
+    0x04 0x00 revert
+    
+    continue:
+        pop         // [index]
+        GET_ELEMENT_SLOT()
+        sload
+}
+
+ #define macro LENGTH() = takes(0) returns(1) {
+    GET_ARRAY_SLOT()  // Get raw slot for length
+    sload             // Load length from raw slot
+}
+
+ #define macro WRITE() = takes(2) returns(0) {
+    // [index, value]
+    dup2            // [value, index, value]
+    LENGTH()        // [length, value, index, value]
+    dup1            // [length, length, value, index, value]
+    dup4            // [index, length, length, value, index, value]
+    lt              // [index<length, length, value, index, value]
+    continue jumpi  // [length, value, index, value]
+    
+    // If we get here, index >= length, so revert
+    __ERROR(OutOfBounds)
+    0x00 mstore           // []
+    0x04 0x00 revert
+    
+    continue:
+        pop         // [value, index, value]
+        swap1       // [index, value, value]
+        GET_ELEMENT_SLOT()  // [slot, value]
+        sstore      // []
+}
+
+ #define macro MAIN() = takes(0) returns(0) {
+    // Identify which function is being called.
+    0x00 calldataload 0xE0 shr
+
+    dup1 __FUNC_SIG(pushh)            eq pushhJump          jumpi
+    dup1 __FUNC_SIG(popp)            eq poppJump          jumpi
+    dup1 __FUNC_SIG(read)            eq readJump          jumpi
+    dup1 __FUNC_SIG(length)            eq lengthJump          jumpi
+    dup1 __FUNC_SIG(write)            eq writeJump          jumpi
+
+    0x00 0x00 revert
+
+    pushhJump:
+        0x04 calldataload
+        PUSHH()
+        0x00 0x00 return     // Return empty for void functions
+
+    poppJump:
+        POPP()
+        0x00 0x00 return     // Return empty for void functions
+
+    readJump:
+        0x04 calldataload  // Load the index argument
+        READ()
+        returnValue jump   // Jump to return value handling
+
+    lengthJump:
+        LENGTH()
+        returnValue jump   // Jump to return value handling
+
+    writeJump:
+        0x24 calldataload  // Load the num argument
+        0x04 calldataload  // Load the index argument
+        WRITE()           
+        0x00 0x00 return  // Return empty for void functions
+
+    returnValue:          // Handle functions that return a value
+        0x00 mstore      // Store the return value
+        0x20 0x00 return // Return 32 bytes
+}
