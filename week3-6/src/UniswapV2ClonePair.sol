@@ -10,6 +10,8 @@ import {IERC3156FlashLender, IERC3156FlashBorrower} from "@openzeppelin/contract
 
 import "./libraries/UQ112x112.sol";
 
+// _swap line 176: the computation for pair doesnt use the sorted token0
+//( token1 doesnt exist), why they use input, output?
 // contract UniswapV2ClonePair is ReentrancyGuard, ERC20 {
 contract UniswapV2ClonePair is IUniswapV2Pair, ERC20, ReentrancyGuard, IERC3156FlashLender {
     using UQ112x112 for uint224;
