@@ -1,0 +1,18 @@
+{
+  "overrides": [
+    {
+      "files": "*.yul",
+      "options": {
+        "printWidth": 120,
+        "tabWidth": 4,
+        "useTabs": false,
+        "singleQuote": false,
+        "bracketSpacing": true,
+        "explicitTypes": "always",
+        "trailingComma": "none",
+        "semi": true
+      }
+    }
+  ],
+  "plugins": ["prettier-plugin-solidity"]
+}
