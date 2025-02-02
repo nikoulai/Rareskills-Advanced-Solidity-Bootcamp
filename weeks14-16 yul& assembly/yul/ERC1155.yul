@@ -34,6 +34,7 @@ object "ERC1155" {
 			function getMemPtr() -> p { p := mload(memPtrPos()) }
 			function setMemPtr(v) { mstore(memPtrPos(), v) }
 			function incMemPtr() { mstore(memPtrPos(), add(getMemPtr(), 0x20)) }
+			function mstoreAndInc(v) { mstore(getMemPtr(), v) incMemPtr() }
 			function scratchPoint() -> p { p := 0x00 }
 			function zeroPoint() -> p { p := 0x60 }
 			setMemPtr(0x80)
@@ -46,12 +47,18 @@ object "ERC1155" {
 				case 0xb48ab8b6{
 					let idArrayPos, idArrayLen := decodeUintDynamicArray(1)
 					let amountArrayPos, amountArrayLen := decodeUintDynamicArray(2)
-					batchMint(caller(), decodeAddress(0), idArrayPos,idArrayLen,amountArrayPos, amountArrayLen, getCalldataPosfromIndex(3))
+					// mstore(getMemPtr(),idArrayPos)
+					// mstore(add(getMemPtr(),0x20),idArrayLen)
+					// mstore(add(getMemPtr(),0x40),amountArrayPos)
+					// mstore(add(getMemPtr(),0x60),amountArrayLen)
+					// return(getMemPtr(),0x80)
+					batchMint(caller(), decodeAddress(0), idArrayPos,idArrayLen,amountArrayPos, amountArrayLen, 3)
 					returnTrue()
+
 				}
 				// mint(address,uint256,uint256,bytes)
 				case 0x731133e9{
-					mint(caller(),decodeAddress(0), decode32Bytes(1), decode32Bytes(2),getCalldataPosfromIndex(4))
+					mint(caller(),decodeAddress(0), decode32Bytes(1), decode32Bytes(2),4)
 					returnTrue()
 				}
 				// safeTransferFrom(address,address,uint256,uint256,bytes)
@@ -63,7 +70,7 @@ object "ERC1155" {
 				case 0x2eb2c2d6 {
 					let idArrayPos, idArrayLen := decodeUintDynamicArray(2)
 					let amountArrayPos, amountArrayLen := decodeUintDynamicArray(3)
-					safeBatchTransferFrom(decodeAddress(0), decodeAddress(1), idArrayPos, idArrayLen, amountArrayPos, amountArrayLen, getCalldataPosfromIndex(4))
+					safeBatchTransferFrom(decodeAddress(0), decodeAddress(1), idArrayPos, idArrayLen, amountArrayPos, amountArrayLen, 4)
 					returnTrue()
 				}
 				// balanceOf(address,uint256)
@@ -82,8 +89,10 @@ object "ERC1155" {
 				// setApprovalForAll(address,bool)
 				case 0xa22cb465 {
 					setApprovalForAll(decodeAddress(0), decode32Bytes(1))
+					emitApprovalForAll(caller(), decodeAddress(0), decode32Bytes(1))
 					returnTrue()
 				}
+
 				// isApprovedForAll(address,address)
 				case 0xe985e9c5 {
 					let res := isApprovedForAll(decodeAddress(0), decodeAddress(1))
@@ -94,7 +103,7 @@ object "ERC1155" {
 					revert(0, 0)
 				}
 
-			function batchMint(operator, to, idArrayPos, idArrayLen, amountArrayPos, amountArrayLen, dataPos) {
+			function batchMint(operator, to, idArrayPos, idArrayLen, amountArrayPos, amountArrayLen, dataArgumentPos) {
 				if iszero(eq(idArrayLen, amountArrayLen)) {
 					revertLengthMismatch()
 				}
@@ -103,7 +112,8 @@ object "ERC1155" {
 				for { let i := 1 } lt(i, add(idArrayLen,0x01)) { i := add(i, 1) } {
 					let id := calldataload(add(idArrayPos, mul(i, 0x20)))
 					let amount := calldataload(add(amountArrayPos, mul(i, 0x20)))
-					mint(operator,to, id, amount, dataPos)
+					_mint(operator,to, id, amount, dataArgumentPos)
+
 				}
 
 			}
@@ -129,6 +139,8 @@ object "ERC1155" {
 					sstore(getBalanceOfSlot(from, id), newBalanceFrom)
 					sstore(getBalanceOfSlot(to, id), newBalanceTo)
 				}
+				let idsMemPtr := _callOnERC1155BatchReceived(caller(), from, to, idArrayPos, idArrayLen, amountArrayPos, amountArrayLen, dataPos)
+				emitTransferBatch(caller(), from, to, idsMemPtr, idArrayLen, amountArrayLen)
 			}
 			function balanceOfBatch(ownerArrayPos, ownerArrayLen, idArrayPos, idArrayLen) -> balancesMemPtr, balancesSize {
 				balancesMemPtr := getMemPtr()
@@ -151,7 +163,12 @@ object "ERC1155" {
 				let balanceOwnerSlot := getBalanceOfSlot(owner, id)
 				bal := sload(balanceOwnerSlot)
 			}
-			function mint(operator,to, id, amount, dataPos) {
+
+			function mint(operator,to, id, amount, dataArgumentPos) {
+				_mint(operator,to, id, amount, dataArgumentPos) 
+				_callOnERC1155Received(operator, 0x00, to, id, amount, dataArgumentPos)
+			}
+			function _mint(operator,to, id, amount, dataArgumentPos) {
 				// let balanceFrom := sload(getBalanceOfSlot(from, id))
 				let balanceTo := sload(getBalanceOfSlot(to, id))
 
@@ -160,6 +177,7 @@ object "ERC1155" {
 
 				// sstore(getBalanceOfSlot(from, id), newBalanceFrom)
 				sstore(getBalanceOfSlot(to, id), newBalanceTo)
+
 			}
 			function safeTransferFrom(from, to, id, amount, dataArgumentPos) {
 				let balanceFrom := sload(getBalanceOfSlot(from, id))
@@ -185,9 +203,81 @@ object "ERC1155" {
 				res := sload(operatorSlot)
 				
 			}
+			//onERC1155BatchReceived( address _operator, address _from, uint256[] calldata _ids, uint256[] calldata _amounts, bytes calldata _data)
+			function _callOnERC1155BatchReceived(batchOperator, from, to, idArrayPos, idArrayLen, amountArrayPos, amountArrayLen, dataArgumentPos) -> idsMemPtr {
+                                if eq(extcodesize(to), 0) { leave } // receiver is not a contract
+
+				let onERC1155BatchReceivedSelector := 0xbc197c81 
+				let zeroWei := 0x00
+				let dataMemPtr := getMemPtr()
+
+				mstoreAndInc(onERC1155BatchReceivedSelector)
+				mstoreAndInc(batchOperator)
+				mstoreAndInc(from)
+				// mstore(add(getMemPtr(), 0x20), batchOperator)
+                		// mstore(add(getMemPtr(), 0x40), from)
+				//0x00 from
+				//0x20 batchOperator
+				//0x40 idArrayPos
+				//0x60 amountArrayPos
+				//0x80 dataPos
+				//0xa0 idArrayLen
+				let size := 0xa0  // 5 * 0x20, t is the number of arguments
+				mstoreAndInc(size)
+				
+				//todo delete, placeholder
+				mstoreAndInc(0x00)
+				mstoreAndInc(0x00)
+
+				//id calldata
+                		mstore(add(dataMemPtr, 0xc0), idArrayLen)
+				idArrayPos := add(idArrayPos, 0x20)
+				calldatacopy(add(dataMemPtr, 0xe0), idArrayPos, mul(idArrayLen, 0x20))
+				size := add(add(size, mul(idArrayLen, 0x20)), 0x20)
+
+				//amount calldata
+                		mstore(add(dataMemPtr, 0x80), size)
+				mstore(add(add(dataMemPtr, size),0x20), amountArrayLen)
+				amountArrayPos := add(amountArrayPos, 0x20)
+				calldatacopy(add(add(dataMemPtr, size), 0x40), amountArrayPos, mul(amountArrayLen, 0x20))
+				size := add(add(size, mul(amountArrayLen, 0x20)), 0x20)
+
+
+
+
+                		mstore(add(dataMemPtr, 0xa0), size)
+				let arrPos, len :=  decodeUintDynamicArray(dataArgumentPos)
+				arrPos := add(arrPos, 0x20)
+				mstore(add(add(dataMemPtr, size), 0x20), len)
+				calldatacopy(add(add(dataMemPtr, size), 0x40), arrPos, len)
+				size := add(size, len)
+
+				// return(add(dataMemPtr, 0x1c), add(size, 0x40))
+				//acoid computations, lazy
+				setMemPtr(msize())
+
+				let retMemPtr := getMemPtr()
+				incMemPtr()
+
+				// 0x1c is 28, skip the first 28 bytes to get the selector
+				let success := call(gas(),to,zeroWei,add(dataMemPtr,0x1c),add(size,0x40),retMemPtr,0x20)
+
+				let ret := mload(retMemPtr)
+
+				ret := shr(0xe0, ret)
+
+				if iszero(eq(ret, onERC1155BatchReceivedSelector)) {
+					revertUnsafeRecipient()
+				}
+
+				idsMemPtr := add(dataMemPtr, 0xc0)
+
+			}
 			//onERC1155Received(address _operator, address _from, uint256 _id, uint256 _amount, bytes calldata _data)
+
 			function _callOnERC1155Received(operator, from, to, id, amount, dataArgumentPos) {
-				//  if eq(extcodesize(to), 0) { leave } // receiver is not a contract
+				if eq(extcodesize(to), 0) { leave } // receiver is not a contract
+
 				let onERC1155ReceivedSelector := 0xf23a6e61
 				let zeroWei := 0x00
 				let dataMemPtr := getMemPtr()
@@ -200,46 +290,36 @@ object "ERC1155" {
                 		mstore(add(getMemPtr(), 0xa0), 0x00000000000000000000000000000000000000000000000000000000000000a0)
 
 				let arrPos, len :=  decodeUintDynamicArray(dataArgumentPos)
+
                 		mstore(add(getMemPtr(), 0xc0), len)
+
 				setMemPtr(add(getMemPtr(), 0xe0))
 
 				let size := 0xe0
 
-				// for { let i := 0 } lt(i, add(div(len,0x20), 0x01)) { i := add(i, 0x01) } {
-					arrPos := add(arrPos, 0x20)
-				// 	size := add(size, 0x20)
+				arrPos := add(arrPos, 0x20)
 
-				// }
 				calldatacopy(getMemPtr(), arrPos, len)
 				size := add(size, len)
-				// setMemPtr(add(getMemPtr(), 0x100))
-				//this is relatively to the calldata, to the string itself?
 
-                		// mstore(add(getMemPtr(), 0xa0), 0x0000000000000000000000000000000000000000000000000000000000000000)
-                		// mstore(add(getMemPtr(), 0xc0), 0x0000000000000000000000000000000000000000000000000000000000000000)
-				// mstore(getMemPtr(), from)
-				// return(add(getMemPtr(),0x1c), 0xe0)
-				// let arrayLen := calldataload(data)
-				// let calldataSize := calldatasize()
-				// calldatacopy(getMemPtr(), data, sub(calldataSize, data))
+				setMemPtr(size)
+
+				let retMemPtr := getMemPtr()
+				incMemPtr()
+				//todo test substracting 0x1c from size
 				// 0x1c is 28, skip the first 28 bytes to get the selector
-				let success := call(gas(),to,zeroWei,add(dataMemPtr,0x1c),size,add(getMemPtr(),0x1f0),0x40)
-			
-				
+				let success := call(gas(),to,zeroWei,add(dataMemPtr,0x1c),size,retMemPtr,0x20)
 
+				let ret := mload(retMemPtr)
 
+				ret := shr(0xe0, ret)
 
-				// if iszero(success) {
-					returnUint(success)
-				// }
-				// returnUint(0x11111111111111111111111111f)
+				if iszero(eq(ret, onERC1155ReceivedSelector)) {
+					revertUnsafeRecipient()
+				}
 
 			}
 
-			// function onERC1155BatchReceived( address _operator, address _from, uint256[] calldata _ids, uint256[] calldata _amounts, bytes calldata _data
-			function _callOnERC1155BatchReceived(to, from, idArrayPos, idArrayLen, amountArrayPos, amountArrayLen, dataPos) {
-				let onERC1155BatchReceivedSelector := 0xbc197c81
-			}
 			function getBalanceOfSlot(owner, id) -> balanceOwnerSlot {
 
 				let baseSlot := balanceSlot()
@@ -350,6 +430,30 @@ object "ERC1155" {
                         	operator
                 		)
             		}
+
+			//we take advantage of the fact that the ids and amounts arrays are already stored in the memory
+			function emitTransferBatch(operator, from, to, idsMemPtr, idsLen, amountsLen) {
+				let signatureHash := 0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb
+				
+				let idsStart := 0x40
+				let amountsStart := add(mul(0x20, idsLen), 0x60)
+
+
+				let totalSize := add(0x80, mul(mul(idsLen, 2), 0x20))
+				idsMemPtr := sub(idsMemPtr, 0x40)
+
+				mstore(idsMemPtr, idsStart) // ids start at 0x40
+				mstore(add(idsMemPtr, 0x20), amountsStart) 
+
+				log4(idsMemPtr, totalSize, signatureHash, operator, from, to)
+			}
+
+
+
+			function emitApprovalForAll(owner, operator, approved) {
+                		mstore(scratchPoint(), approved)
+                		log3(scratchPoint(), 0x20,0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31 , owner, operator)
+			}
 		}
 	}
 }
