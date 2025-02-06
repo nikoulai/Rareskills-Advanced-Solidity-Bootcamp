@@ -1,3 +1,8 @@
 {
-  "wake.compiler.solc.remappings": []
+  "editor.formatOnSave": true,
+  // "editor.defaultFormatter": "esbenp.prettier-vscode",
+  // "files.associations": {
+    // "*.yul": "solidity"
+  // },
+
 }
