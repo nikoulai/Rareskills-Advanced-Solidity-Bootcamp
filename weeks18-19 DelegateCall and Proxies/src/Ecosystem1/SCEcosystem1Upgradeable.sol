@@ -9,14 +9,14 @@ import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 
 import {console} from "forge-std/console.sol";
 
-contract SCEcosystem1 is ERC721RoyaltyUpgradeable, Ownable2StepUpgradeable {
-    uint256 public MAX_SUPPLY = 1000;
+contract SCEcosystem1Upgradeable is ERC721RoyaltyUpgradeable, Ownable2StepUpgradeable {
+    uint256 public MAX_SUPPLY;
     //reward rate of 2.5%
-    uint96 public FEE_NUMERATOR = 250;
+    uint96 public FEE_NUMERATOR;
 
-    uint128 public constant MINT_FEE = 0.1 ether;
+    uint128 public MINT_FEE;
 
-    uint256 public totalSupply = 0;
+    uint256 public totalSupply;
 
     bytes32 public merkleRoot;
     BitMaps.BitMap private _airdropList;
@@ -31,6 +31,10 @@ contract SCEcosystem1 is ERC721RoyaltyUpgradeable, Ownable2StepUpgradeable {
         __ERC721Royalty_init();
         __Ownable_init(_msgSender());
         merkleRoot = _merkleRoot;
+        MAX_SUPPLY = 1000;
+        FEE_NUMERATOR = 250;
+        MINT_FEE = 0.1 ether;
+        totalSupply = 0;
     }
 
     function mint() external payable maxSupply {

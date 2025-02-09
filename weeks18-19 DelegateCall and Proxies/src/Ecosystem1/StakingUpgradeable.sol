@@ -5,12 +5,9 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "./IRewardToken.sol";
 
-interface IRewardToken {
-    function mint(address to, uint256 amount) external;
-}
-
-contract Staking is Initializable, IERC721Receiver {
+contract StakingUpgradeable is Initializable, IERC721Receiver {
     address public rewardToken;
     address public nft;
     mapping(uint256 => bool) public stakedTokens;

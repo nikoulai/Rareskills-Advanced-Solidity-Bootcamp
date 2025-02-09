@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 
-contract RewardToken is ERC20Upgradeable {
+contract RewardTokenUpgradeable is ERC20Upgradeable {
     address public minter;
 
     function initialize(address _minter) external initializer {
