@@ -15,10 +15,12 @@ import {
     NewDelayAboveMax
 } from "./ClimberErrors.sol";
 
+import "forge-std/console.sol";
 /**
  * @title ClimberTimelock
  * @author
  */
+
 contract ClimberTimelock is ClimberTimelockBase {
     using Address for address;
 
@@ -57,7 +59,8 @@ contract ClimberTimelock is ClimberTimelockBase {
         }
 
         bytes32 id = getOperationId(targets, values, dataElements, salt);
-
+        console.log("id in schedule");
+        console.logBytes32(id);
         if (getOperationState(id) != OperationState.Unknown) {
             revert OperationAlreadyKnown(id);
         }
@@ -86,7 +89,10 @@ contract ClimberTimelock is ClimberTimelockBase {
         }
 
         bytes32 id = getOperationId(targets, values, dataElements, salt);
-
+        console.log("id in execute");
+        console.logBytes32(id);
+        console.log("getOperationState");
+        console.logUint(uint256(getOperationState(id)));
         for (uint8 i = 0; i < targets.length; ++i) {
             targets[i].functionCallWithValue(dataElements[i], values[i]);
         }

