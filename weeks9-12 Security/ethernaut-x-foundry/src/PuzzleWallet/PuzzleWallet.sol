@@ -9,13 +9,16 @@ contract PuzzleProxy is UpgradeableProxy {
     address public pendingAdmin;
     address public admin;
 
-    constructor(address _admin, address _implementation, bytes memory _initData) UpgradeableProxy(_implementation, _initData) public {
+    constructor(address _admin, address _implementation, bytes memory _initData)
+        public
+        UpgradeableProxy(_implementation, _initData)
+    {
         admin = _admin;
     }
 
-    modifier onlyAdmin {
-      require(msg.sender == admin, "Caller is not the admin");
-      _;
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Caller is not the admin");
+        _;
     }
 
     function proposeNewAdmin(address _newAdmin) external {
@@ -34,6 +37,7 @@ contract PuzzleProxy is UpgradeableProxy {
 
 contract PuzzleWallet {
     using SafeMath for uint256;
+
     address public owner;
     uint256 public maxBalance;
     mapping(address => bool) public whitelisted;
@@ -47,14 +51,14 @@ contract PuzzleWallet {
         owner = msg.sender;
     }
 
-    modifier onlyWhitelisted {
+    modifier onlyWhitelisted() {
         require(whitelisted[msg.sender], "Not whitelisted");
         _;
     }
 
     function setMaxBalance(uint256 _maxBalance) external onlyWhitelisted {
-      require(address(this).balance == 0, "Contract balance is not 0");
-      maxBalance = _maxBalance;
+        require(address(this).balance == 0, "Contract balance is not 0");
+        maxBalance = _maxBalance;
     }
 
     function addToWhitelist(address addr) external {
@@ -62,16 +66,16 @@ contract PuzzleWallet {
         whitelisted[addr] = true;
     }
 
-    function deposit() external payable onlyWhitelisted {   
-      emit Amount(msg.value);
-      require(address(this).balance <= maxBalance, "Max balance reached");
-      balances[msg.sender] += msg.value;
+    function deposit() external payable onlyWhitelisted {
+        emit Amount(msg.value);
+        require(address(this).balance <= maxBalance, "Max balance reached");
+        balances[msg.sender] += msg.value;
     }
 
     function execute(address to, uint256 value, bytes calldata data) external payable onlyWhitelisted {
         require(balances[msg.sender] >= value, "Insufficient balance");
         balances[msg.sender] = balances[msg.sender].sub(value);
-        (bool success, ) = to.call{ value: value }(data);
+        (bool success,) = to.call{value: value}(data);
         require(success, "Execution failed");
     }
 
@@ -82,14 +86,14 @@ contract PuzzleWallet {
             bytes memory _data = data[i];
             bytes4 selector;
             assembly {
-                selector := mload(add(_data, 32)) // why is _data + 32 the memory location for the selector
+                selector := mload(add(_data, 32))
             }
             if (selector == this.deposit.selector) {
                 require(!depositCalled, "Deposit can only be called once");
                 // Protect against reusing msg.value
                 depositCalled = true;
             }
-            (bool success, ) = address(this).delegatecall(data[i]);
+            (bool success,) = address(this).delegatecall(data[i]);
             // require(success, "Error while delegating call");
         }
     }
