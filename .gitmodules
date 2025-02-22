@@ -55,3 +55,9 @@
 [submodule "weeks18-19 DelegateCall and Proxies/lib/openzeppelin-contracts-upgradeable"]
 	path = weeks18-19 DelegateCall and Proxies/lib/openzeppelin-contracts-upgradeable
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
+[submodule "weeks20-22 ECDSA/Exercises/lib/openzeppelin-contracts-upgradeable"]
+	path = weeks20-22 ECDSA/Exercises/lib/openzeppelin-contracts-upgradeable
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
+[submodule "weeks20-22 ECDSA/Exercises/lib/openzeppelin-foundry-upgrades"]
+	path = weeks20-22 ECDSA/Exercises/lib/openzeppelin-foundry-upgrades
+	url = https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades

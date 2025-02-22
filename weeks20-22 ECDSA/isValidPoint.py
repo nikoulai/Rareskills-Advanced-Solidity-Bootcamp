@@ -1,0 +1,12 @@
+def is_valid_secp256k1_point(x: int, y: int) -> bool:
+    p = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+    
+    if not (0 <= x < p and 0 <= y < p):
+        return False
+    
+    return (y * y - (x * x * x + 7)) % p == 0
+
+x = 55066263022277343669578718895168534326250603453777594175500187360389116729240
+y = 32670510020758816978083085130507043184332968415243786268322805061346716696518
+
+print(is_valid_secp256k1_point(x, y)) 

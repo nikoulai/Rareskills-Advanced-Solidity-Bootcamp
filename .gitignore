@@ -1,0 +1,23 @@
+# Ignore Go-related files
+/bin/
+/pkg/
+/go.sum
+
+# Ignore Node.js dependencies
+node_modules/
+
+# Ignore Foundry (Ethereum smart contract framework) dependencies
+foundry.out/
+lib/
+cache/
+broadcast/
+artifacts/
+out/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore Go test binaries
+*.test
+
